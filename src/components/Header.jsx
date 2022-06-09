@@ -12,6 +12,7 @@ function Header() {
       borderBottomColor={'gray.200'}
       pos="sticky"
       top="0"
+      px="4"
       zIndex={3}
       backdropFilter="blur(10px)"
     >

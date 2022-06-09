@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   ButtonGroup,
-  Divider,
   Heading,
   HStack,
   IconButton,
@@ -13,7 +12,7 @@ import {
   Text,
 } from '@chakra-ui/react';
 import React from 'react';
-import { FaComment, FaFilter, FaShareAlt } from 'react-icons/fa';
+import { FaComment, FaFilter, FaShare } from 'react-icons/fa';
 import { BsThreeDots } from 'react-icons/bs';
 import { BiUpvote } from 'react-icons/bi';
 import {
@@ -92,18 +91,20 @@ function Post() {
         entrepreneurial activity is pretty meaningless.
       </Text>
       <Box>
-        <HStack spacing="8" px="4" justifyContent={'space-between'}>
+        <HStack spacing="8" px="4" pb="4" justifyContent={'space-between'}>
           <Popover placement="bottom" closeOnBlur={false}>
             <PopoverTrigger>
               <Button
                 size="sm"
+                fontSize={'13px'}
+                fontFamily={'Plus Jakarta Sans'}
                 leftIcon={
                   <Box fontSize="xl" color="blue.500">
                     <BiUpvote />
                   </Box>
                 }
               >
-                Upvote
+                Upvote (100)
               </Button>
             </PopoverTrigger>
             <PopoverContent color="white" bg="blue.500">
@@ -144,29 +145,29 @@ function Post() {
             </PopoverContent>
           </Popover>
           <Button
+            fontFamily={'Plus Jakarta Sans'}
             size="sm"
+            fontSize={'13px'}
             leftIcon={
               <Box fontSize="lg" color="blue.500">
                 <FaComment />
               </Box>
             }
           >
-            Comment
+            Comments (10)
           </Button>
           <Button
+            fontFamily={'Plus Jakarta Sans'}
             size="sm"
+            fontSize={'13px'}
             leftIcon={
               <Box fontSize="lg" color="blue.500">
-                <FaShareAlt />
+                <FaShare />
               </Box>
             }
           >
-            ReBant!
+            ReBant! (5)
           </Button>
-        </HStack>
-        <Divider color="gray.200" py="1" />
-        <HStack spacing="8">
-          <Button variantColor="blue" size="sm"></Button>
         </HStack>
       </Box>
     </Stack>
