@@ -1,9 +1,8 @@
-import { Box, HStack, Button } from '@chakra-ui/react';
+import { Box, HStack } from '@chakra-ui/react';
 import React from 'react';
-import { Link } from 'react-router-dom';
 import WrapContent from '../layout/WrapContent';
 import Logo from '../Logo';
-import { BiLogInCircle } from 'react-icons/bi';
+import Auth from './Auth/Auth';
 
 function Header() {
   return (
@@ -21,10 +20,7 @@ function Header() {
           <Logo />
 
           <HStack spacing="8" py="5">
-            <Link to="/bant">Post a banta!</Link>
-            <Button colorScheme="green" rightIcon={<BiLogInCircle />}>
-              Login
-            </Button>
+            <Auth />
           </HStack>
         </HStack>
       </WrapContent>

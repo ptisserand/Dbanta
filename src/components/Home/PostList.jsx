@@ -24,8 +24,10 @@ import {
   PopoverArrow,
   PopoverCloseButton,
 } from '@chakra-ui/react';
+import { usePCtx } from '../../context/PostsContext';
 
 function PostList() {
+  const { posts, loading } = usePCtx();
   return (
     <Stack>
       <HStack justifyContent={'space-between'} py="1">
@@ -44,15 +46,16 @@ function PostList() {
           Filters
         </Button>
       </HStack>
-      <Post />
-      <Post />
+      {!loading &&
+        posts &&
+        posts.map((post, i) => <Post key={i} post={post} />)}
     </Stack>
   );
 }
 
 export default PostList;
 
-function Post() {
+function Post({ post }) {
   return (
     <Stack
       spacing="5"
@@ -66,30 +69,22 @@ function Post() {
         <HStack spacing="5">
           <Avatar
             size="sm"
-            name="John Doe"
+            name={post.user}
             src="https://source.unsplash.com/random/50x50/?portrait"
           />
           <Box>
             <Heading as="h3" fontSize="sm">
-              John Doe
+              {post.user}
             </Heading>
             <Text color="gray.500" as="h4" fontSize="xs">
-              2 hours ago
+              {post.time}
             </Text>
           </Box>
         </HStack>
         <IconButton variant="flushed" icon={<BsThreeDots />} fontSize="2xl" />
       </HStack>
-      <Image
-        objectFit={'cover'}
-        maxH="400px"
-        w="100%"
-        src={'https://source.unsplash.com/random/800x600/?nature,food,party'}
-      />
-      <Text px="4">
-        If you're not single-minded and tough in these instances, your
-        entrepreneurial activity is pretty meaningless.
-      </Text>
+      <Image objectFit={'cover'} maxH="400px" w="100%" src={post.image} />
+      <Text px="4">{post.body}</Text>
       <Box>
         <HStack spacing="8" px="4" pb="4" justifyContent={'space-between'}>
           <Popover placement="bottom" closeOnBlur={false}>
@@ -104,7 +99,7 @@ function Post() {
                   </Box>
                 }
               >
-                Upvote (100)
+                Upvote ({post.upvotes})
               </Button>
             </PopoverTrigger>
             <PopoverContent color="white" bg="blue.500">
@@ -154,7 +149,7 @@ function Post() {
               </Box>
             }
           >
-            Comments (10)
+            Comments ({post.comments})
           </Button>
           <Button
             fontFamily={'Plus Jakarta Sans'}
@@ -166,7 +161,7 @@ function Post() {
               </Box>
             }
           >
-            ReBant! (5)
+            ReBant! ({post.shares})
           </Button>
         </HStack>
       </Box>

@@ -22,16 +22,16 @@ function Home() {
           justifyContent={'space-between'}
           h="calc(100vh - 81px)"
           position="relative"
-          overflow="auto"
+          overflow="hidden"
         >
           <Stack
-            py="20px"
+            pt="20px"
             id="main"
             spacing="5"
             w={['100%', '100%', '70%', '80%']}
             as="main"
             h="full"
-            overflow="scroll"
+            overflow="auto"
           >
             <CreateBantBox />
             <PostList />
@@ -40,7 +40,7 @@ function Home() {
             w={['0', '0', '35%', '30%']}
             display={['none', 'none', 'block', 'block']}
             alignSelf={'flex-start'}
-            as="sidebar"
+            as="aside"
             pos="sticky"
             top="0px"
             h="full"
