@@ -8,7 +8,6 @@ import ScrollToTop from './components/utils/ScrollToTop';
 import './styles/globals.css';
 import Home from './pages/Home';
 import AuthProvider from './context/AuthContext';
-import SinglePostWithImage from './components/Posts/SinglePostWithImage';
 // import { ColorModeSwitcher } from './ColorModeSwitcher';
 
 function App() {
@@ -25,10 +24,6 @@ function App() {
                   <Route path="/" element={<Home />}>
                     <Route path={'/banta/:idOrSlug'} element={<Home />} />
                   </Route>
-                  <Route
-                    path={'/banta/:idOrSlug/photo'}
-                    element={<SinglePostWithImage />}
-                  />
                 </Routes>
               </ScrollToTop>
             </BrowserRouter>
