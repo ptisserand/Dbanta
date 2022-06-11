@@ -25,6 +25,7 @@ import {
   PopoverCloseButton,
 } from '@chakra-ui/react';
 import { usePCtx } from '../../context/PostsContext';
+import { Link } from 'react-router-dom';
 
 function PostList() {
   const { posts, loading } = usePCtx();
@@ -56,26 +57,45 @@ function PostList() {
 export default PostList;
 
 function Post({ post }) {
+  const { dispatchEvent } = usePCtx();
+
+  function setActivePost() {
+    dispatchEvent('SET_ACTIVE_POST', post);
+  }
   return (
     <Stack
-      spacing="5"
       shadow="base"
       rounded="lg"
       bg="white"
       w={['full', '95%']}
       style={{ margin: 'auto', marginTop: '10px', marginBottom: '25px' }}
     >
-      <HStack justifyContent={'space-between'} p="4">
+      <HStack
+        as={Link}
+        to={`/banta/${post.id}`}
+        justifyContent={'space-between'}
+        p="4"
+      >
         <HStack spacing="5">
           <Avatar
+            onClick={setActivePost}
+            as={Link}
+            to={`/user/${post.user}`}
             size="sm"
             name={post.user}
             src="https://source.unsplash.com/random/50x50/?portrait"
           />
           <Box>
-            <Heading as="h3" fontSize="sm">
-              {post.user}
-            </Heading>
+            <Link to={`/user/${post.user}`}>
+              <Heading
+                onClick={setActivePost}
+                _hover={{ textDecoration: 'underline' }}
+                as="h3"
+                fontSize="sm"
+              >
+                {post.user}
+              </Heading>
+            </Link>
             <Text color="gray.500" as="h4" fontSize="xs">
               {post.time}
             </Text>
@@ -83,8 +103,20 @@ function Post({ post }) {
         </HStack>
         <IconButton variant="flushed" icon={<BsThreeDots />} fontSize="2xl" />
       </HStack>
-      <Image objectFit={'cover'} maxH="400px" w="100%" src={post.image} />
-      <Text px="4">{post.body}</Text>
+      {post.image && (
+        <Link to={`/banta/${post.id}/photo`}>
+          <Image
+            onClick={setActivePost}
+            objectFit={'cover'}
+            maxH="400px"
+            w="100%"
+            src={post.image}
+          />
+        </Link>
+      )}
+      <Text onClick={setActivePost} as={Link} to={`/banta/${post.id}`} p="4">
+        {post.body}
+      </Text>
       <Box>
         <HStack spacing="8" px="4" pb="4" justifyContent={'space-between'}>
           <Popover placement="bottom" closeOnBlur={false}>

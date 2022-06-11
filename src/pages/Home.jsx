@@ -6,10 +6,12 @@ import {
   Input,
   Stack,
 } from '@chakra-ui/react';
+import { Route, Routes } from 'react-router-dom';
 import Footer from '../components/Footer';
 import CreateBantBox from '../components/Home/CreateBantBox';
 import PostList from '../components/Home/PostList';
 import UserCard from '../components/Home/UserCard';
+import SinglePostView from '../components/Posts/SinglePostView';
 import WrapContent from '../layout/WrapContent';
 
 function Home() {
@@ -33,9 +35,12 @@ function Home() {
             h="full"
             overflow="auto"
           >
-            <CreateBantBox />
-            <PostList />
+            <Routes>
+              <Route exact path="/" element={<HomePostList />} />
+              <Route path={'/banta/:idOrSlug'} element={<SinglePostView />} />
+            </Routes>
           </Stack>
+
           <Box
             w={['0', '0', '35%', '30%']}
             display={['none', 'none', 'block', 'block']}
@@ -80,3 +85,12 @@ function Home() {
 }
 
 export default Home;
+
+function HomePostList() {
+  return (
+    <>
+      <CreateBantBox />
+      <PostList />
+    </>
+  );
+}

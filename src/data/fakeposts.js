@@ -7,6 +7,7 @@ const fakeposts = [
     upvotes: 20,
     comments: 98,
     shares: 11,
+    id: '97664747475858588585',
   },
   {
     body: "If you're not single-minded and tough in these instances, your entrepreneurial activity is pretty meaningless.",
@@ -16,6 +17,7 @@ const fakeposts = [
     upvotes: 20,
     comments: 98,
     shares: 11,
+    id: '97664747475958588585',
   },
   {
     body: "If you're not single-minded and tough in these instances, your entrepreneurial activity is pretty meaningless.",
@@ -25,6 +27,7 @@ const fakeposts = [
     upvotes: 20,
     comments: 98,
     shares: 11,
+    id: '97664747475858577585',
   },
   {
     body: "If you're not single-minded and tough in these instances, your entrepreneurial activity is pretty meaningless.",
@@ -34,6 +37,7 @@ const fakeposts = [
     upvotes: 20,
     comments: 98,
     shares: 11,
+    id: '37664747475858588585',
   },
   {
     body: "If you're not single-minded and tough in these instances, your entrepreneurial activity is pretty meaningless.",
@@ -43,6 +47,7 @@ const fakeposts = [
     upvotes: 20,
     comments: 98,
     shares: 11,
+    id: '9674747455858588585',
   },
   {
     body: "If you're not single-minded and tough in these instances, your entrepreneurial activity is pretty meaningless.",
@@ -52,6 +57,7 @@ const fakeposts = [
     upvotes: 20,
     comments: 98,
     shares: 11,
+    id: '97664747000858588585',
   },
   {
     body: "If you're not single-minded and tough in these instances, your entrepreneurial activity is pretty meaningless.",
@@ -61,6 +67,7 @@ const fakeposts = [
     upvotes: 20,
     comments: 98,
     shares: 11,
+    id: '9765555475858588585',
   },
 ];
 
