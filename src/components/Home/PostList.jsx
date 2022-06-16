@@ -112,6 +112,7 @@ function Post({ post }) {
           comments={post.comments}
           shares={post.shares}
           upvotes={post.upvotes}
+          id={post.id}
         />{' '}
       </Box>
     </Stack>

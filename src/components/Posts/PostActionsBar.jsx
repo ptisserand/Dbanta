@@ -14,12 +14,15 @@ import {
   Input,
 } from '@chakra-ui/react';
 import { BiUpvote } from 'react-icons/bi';
-import { FaComment, FaShare } from 'react-icons/fa';
+import { FaComment } from 'react-icons/fa';
+import { AiOutlineRetweet } from 'react-icons/ai';
+import { Link } from 'react-router-dom';
 
-function PostActionsBar({ upvotes, comments, shares }) {
+function PostActionsBar({ upvotes, comments, shares, id }) {
+  // const
   return (
     <Box>
-      <HStack spacing="8" pb="4" justifyContent={'space-between'}>
+      <HStack spacing={[3, 5, 8]} pb="4" justifyContent={'space-between'}>
         <Popover placement="bottom" closeOnBlur={false}>
           <PopoverTrigger>
             <Button
@@ -32,7 +35,7 @@ function PostActionsBar({ upvotes, comments, shares }) {
                 </Box>
               }
             >
-              Upvote ({upvotes})
+              Upvote
             </Button>
           </PopoverTrigger>
           <PopoverContent color="white" bg="blue.500">
@@ -72,29 +75,47 @@ function PostActionsBar({ upvotes, comments, shares }) {
             </PopoverBody>
           </PopoverContent>
         </Popover>
+        {id && (
+          <Button
+            as={Link}
+            to={`/banta/${id}`}
+            fontFamily={'Plus Jakarta Sans'}
+            size="sm"
+            fontSize={'xs'}
+            leftIcon={
+              <Box fontSize={['sm', 'sm', 'lg']} color="blue.500">
+                <FaComment />
+              </Box>
+            }
+          >
+            Comments
+          </Button>
+        )}
+        {!id && (
+          <Button
+            fontFamily={'Plus Jakarta Sans'}
+            size="sm"
+            fontSize={'xs'}
+            leftIcon={
+              <Box fontSize={['sm', 'sm', 'lg']} color="blue.500">
+                <FaComment />
+              </Box>
+            }
+          >
+            Comments
+          </Button>
+        )}
         <Button
           fontFamily={'Plus Jakarta Sans'}
           size="sm"
-          fontSize={'13px'}
+          fontSize={'xs'}
           leftIcon={
-            <Box fontSize="lg" color="blue.500">
-              <FaComment />
+            <Box fontSize={['sm', 'sm', 'lg']} color="blue.500">
+              <AiOutlineRetweet />
             </Box>
           }
         >
-          Comments ({comments})
-        </Button>
-        <Button
-          fontFamily={'Plus Jakarta Sans'}
-          size="sm"
-          fontSize={'13px'}
-          leftIcon={
-            <Box fontSize="lg" color="blue.500">
-              <FaShare />
-            </Box>
-          }
-        >
-          ReBant! ({shares})
+          ReBant!
         </Button>
       </HStack>
     </Box>

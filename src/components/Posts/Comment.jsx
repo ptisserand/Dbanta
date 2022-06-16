@@ -1,7 +1,7 @@
 import { Avatar, Box, Heading, HStack, Text } from '@chakra-ui/react';
 import React from 'react';
 
-function Comment() {
+function Comment({user, comment}) {
   return (
     <Box bg="gray.50" pt="5">
       <HStack spacing="5" alignItems={'flex-start'}>
