@@ -2,6 +2,10 @@
 pragma solidity 0.8.0;
 
 contract Dbanta {
+    uint256 public BantCount;
+    uint256 id;
+    uint256 public lCount = 0;
+
     event PostCreated(
         bytes32 indexed postId,
         address indexed postOwner,
@@ -22,6 +26,21 @@ contract Dbanta {
         uint8 reputationAmount
     );
 
+    event LogNewUser(
+        address indexed Address,
+        uint256 index,
+        string EthAddress,
+        string username,
+        uint256 age
+    );
+    event LogUpdateUser(
+        address indexed Address,
+        uint256 index,
+        string EthAddress,
+        string username,
+        uint256 age
+    );
+
     struct post {
         address postOwner;
         bytes32 parentPost;
@@ -30,11 +49,51 @@ contract Dbanta {
         bytes32 categoryId;
     }
 
+    struct User {
+        string username;
+        uint256 age;
+        string EthAddress;
+        string email;
+        uint256 index;
+        uint256 BantCount;
+        Bant[] BantsArray;
+    }
     mapping(address => mapping(bytes32 => uint80)) reputationRegistry;
     mapping(bytes32 => string) categoryRegistry;
     mapping(bytes32 => string) contentRegistry;
     mapping(bytes32 => post) postRegistry;
     mapping(address => mapping(bytes32 => bool)) voteRegistry;
+    mapping(uint256 => Bant) public MyBants;
+    mapping(address => User) user;
+    mapping(address => _user) public _user;
+    mapping(address => mapping(uint256 => bool)) public liked;
+    mapping(address => uint256[]) public Bants_via_author;
+
+    function isUser(address Address) public view returns (bool yesIsUser) {
+        if (userindex.length == 0) return false;
+        return (userindex[users[Address].index] == Address);
+    }
+
+    function addUser(
+        string memory _EthAddress,
+        string username,
+        uint256 _age
+    ) public returns (bool success) {
+        address Address = msg.sender;
+        require(isUser(Address) == false);
+        users[Address].age = _age;
+        users[Address].EthAddress = _EthAddress;
+        users[Address].username = _username;
+        users[Address].index = userindex.push(Address) - 1;
+        emit LogNewUser(
+            Address,
+            users[Address].index,
+            _EthAddress,
+            _username,
+            _age
+        );
+        return true;
+    }
 
     function createPost(
         bytes32 _parentId,
@@ -61,16 +120,16 @@ contract Dbanta {
         address _contributor = postRegistry[_postId].postOwner;
         require(
             postRegistry[_postId].postOwner != _voter,
-            "you cannot vote your own posts"
+            'you cannot vote your own posts'
         );
         require(
             voteRegistry[_voter][_postId] == false,
-            "Sender already voted in this post"
+            'Sender already voted in this post'
         );
         require(
             validateReputationChange(_voter, _category, _reputationAdded) ==
                 true,
-            "This address cannot add this amount of reputation points"
+            'This address cannot add this amount of reputation points'
         );
         postRegistry[_postId].votes += 1;
         reputationRegistry[_contributor][_category] += _reputationAdded;
@@ -93,12 +152,12 @@ contract Dbanta {
         address _contributor = postRegistry[_postId].postOwner;
         require(
             voteRegistry[_voter][_postId] == false,
-            "Sender already voted in this post"
+            'Sender already voted in this post'
         );
         require(
             validateReputationChange(_voter, _category, _reputationTaken) ==
                 true,
-            "This address cannot take this amount of reputation points"
+            'This address cannot take this amount of reputation points'
         );
         postRegistry[_postId].votes >= 1
             ? postRegistry[_postId].votes -= 1
@@ -134,10 +193,49 @@ contract Dbanta {
         }
     }
 
+    event like(uint256 id, uint256 likeCount);
+
+    function likeOnce(uint256 _id, address _ethaddress) external {
+        if (liked[_ethaddress][_id] != true) {
+            likeBant(_id, _ethaddress);
+            (_id, _ethaddress);
+        }
+    }
+
+    function likeBant(uint256 _id, address _ethaddress) internal {
+        liked[_ethaddress][_id] = true;
+        MyBants[_id].lCount += 1;
+        emit like(_id, MyBants[_id].lCount);
+    }
+
+    function DeleteBant(uint256 _id) public onlyOwner {
+        MyBants[_id].BantString = '';
+        MyBants[_id].deleted = true;
+    }
+
     function addCategory(string calldata _category) external {
         bytes32 _categoryId = keccak256(abi.encode(_category));
         categoryRegistry[_categoryId] = _category;
         emit CategoryCreated(_categoryId, _category);
+    }
+
+    function getUser(address Address)
+        public
+        view
+        returns (
+            string memory EthAddress,
+            uint256 age,
+            string username,
+            uint256 index
+        )
+    {
+        require(isUser(Address) == true);
+        return (
+            users[Address].EthAddress,
+            users[Address].age,
+            users[Address].username,
+            users[Address].index
+        );
     }
 
     function getContent(bytes32 _contentId)
