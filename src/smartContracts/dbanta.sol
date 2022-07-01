@@ -41,6 +41,8 @@ contract Dbanta {
         uint256 age
     );
 
+    event profileUpdate(uint256 age, string username, string email);
+
     struct post {
         address postOwner;
         bytes32 parentPost;
@@ -68,6 +70,19 @@ contract Dbanta {
     mapping(address => _user) public _user;
     mapping(address => mapping(uint256 => bool)) public liked;
     mapping(address => uint256[]) public Bants_via_author;
+
+    function editprofile(
+        address _address,
+        uint256 _age,
+        string memory _email
+        string memory _username
+    ) public onlyOwner {
+        require(_address == msg.sender);
+        user[_address].age = _age;
+        user[_address].email = _email;
+        user [_address].username = _username
+        emit profileUpdate(user[_address].age, user[_address].email, user[_address].username);
+    }
 
     function isUser(address Address) public view returns (bool yesIsUser) {
         if (userindex.length == 0) return false;
