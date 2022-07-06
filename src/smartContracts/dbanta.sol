@@ -1,299 +1,599 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.0;
+
+pragma solidity >=0.7.0 <0.8.9;
+
+library SafeMath {
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        uint256 c = a + b;
+        require(c >= a, 'SafeMath: addition overflow');
+
+        return c;
+    }
+
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        return sub(a, b, 'SafeMath: subtraction overflow');
+    }
+
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        require(b <= a, errorMessage);
+        uint256 c = a - b;
+
+        return c;
+    }
+
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        if (a == 0) {
+            return 0;
+        }
+
+        uint256 c = a * b;
+        require(c / a == b, 'SafeMath: multiplication overflow');
+
+        return c;
+    }
+
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        return div(a, b, 'SafeMath: division by zero');
+    }
+
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        require(b > 0, errorMessage);
+        uint256 c = a / b;
+        return c;
+    }
+}
 
 contract Dbanta {
-    uint256 public BantCount;
-    uint256 id;
-    uint256 public lCount = 0;
-
-    event PostCreated(
-        bytes32 indexed postId,
-        address indexed postOwner,
-        bytes32 indexed parentId,
-        bytes32 contentId,
-        bytes32 categoryId
-    );
-    event ContentAdded(bytes32 indexed contentId, string contentUri);
-    event CategoryCreated(bytes32 indexed categoryId, string category);
-    event Voted(
-        bytes32 indexed postId,
-        address indexed postOwner,
-        address indexed voter,
-        uint80 reputationPostOwner,
-        uint80 reputationVoter,
-        int40 postVotes,
-        bool up,
-        uint8 reputationAmount
-    );
-
-    event LogNewUser(
-        address indexed Address,
-        uint256 index,
-        string EthAddress,
-        string username,
-        uint256 age
-    );
-    event LogUpdateUser(
-        address indexed Address,
-        uint256 index,
-        string EthAddress,
-        string username,
-        uint256 age
-    );
-
-    event profileUpdate(uint256 age, string username, string email);
-
-    struct post {
-        address postOwner;
-        bytes32 parentPost;
-        bytes32 contentId;
-        int40 votes;
-        bytes32 categoryId;
-    }
+    using SafeMath for uint256;
+    address payable public owner; //Owner is also a maintainer
+    bool public stopped = false;
 
     struct User {
+        uint256 id;
+        address ethAddress;
         string username;
-        uint256 age;
-        string EthAddress;
-        string email;
-        uint256 index;
-        uint256 BantCount;
-        Bant[] BantsArray;
-    }
-    mapping(address => mapping(bytes32 => uint80)) reputationRegistry;
-    mapping(bytes32 => string) categoryRegistry;
-    mapping(bytes32 => string) contentRegistry;
-    mapping(bytes32 => post) postRegistry;
-    mapping(address => mapping(bytes32 => bool)) voteRegistry;
-    mapping(uint256 => Bant) public MyBants;
-    mapping(address => User) user;
-    mapping(address => _user) public _user;
-    mapping(address => mapping(uint256 => bool)) public liked;
-    mapping(address => uint256[]) public Bants_via_author;
-
-    function editprofile(
-        address _address,
-        uint256 _age,
-        string memory _email
-        string memory _username
-    ) public onlyOwner {
-        require(_address == msg.sender);
-        user[_address].age = _age;
-        user[_address].email = _email;
-        user [_address].username = _username
-        emit profileUpdate(user[_address].age, user[_address].email, user[_address].username);
+        string name;
+        string profileImgHash;
+        string profileCoverImgHash;
+        string bio;
+        accountStatus status; // Account Banned or Not
     }
 
-    function isUser(address Address) public view returns (bool yesIsUser) {
-        if (userindex.length == 0) return false;
-        return (userindex[users[Address].index] == Address);
+    struct Bant {
+        uint256 bantId;
+        address author;
+        string hashtag;
+        string content;
+        string imgHash;
+        uint256 timestamp;
+        uint256 likeCount;
+        uint256 reportCount;
+        cdStatus status; // Bant Active-Deleted-Banned
     }
 
-    function addUser(
-        string memory _EthAddress,
-        string username,
-        uint256 _age
-    ) public returns (bool success) {
-        address Address = msg.sender;
-        require(isUser(Address) == false);
-        users[Address].age = _age;
-        users[Address].EthAddress = _EthAddress;
-        users[Address].username = _username;
-        users[Address].index = userindex.push(Address) - 1;
-        emit LogNewUser(
-            Address,
-            users[Address].index,
-            _EthAddress,
+    struct Comment {
+        uint256 commentId;
+        address author;
+        uint256 bantId;
+        string content;
+        uint256 likeCount;
+        uint256 timestamp;
+        cdStatus status;
+    }
+
+    uint256 public totalBants = 0;
+    uint256 public totalComments = 0;
+    uint256 public totalUsers = 0;
+
+    enum accountStatus {
+        NP,
+        Active,
+        Banned,
+        Deactivated
+    }
+
+    enum cdStatus {
+        NP,
+        Active,
+        Banned,
+        Deleted
+    }
+
+    //Comment-Bant status
+    // enum BantStatus{NP,Active, Banned, Deleted}
+
+    mapping(address => User) private users; //mapping to get user details from user address
+    mapping(string => address) private userAddressFromUsername; //to get user address from username
+    // mapping(address=>bool) private registeredUser; //mapping to get user details from user address
+    mapping(string => bool) private usernames; //To check which username is taken taken=>true, not taken=>false
+
+    mapping(uint256 => Bant) private Bants; // mapping to get bant from Id
+    mapping(address => uint256[]) private userBants; // Array to store bants(Id) done by user
+    // mapping(uint=>address[]) private bantLikersList;
+    mapping(uint256 => mapping(address => bool)) private bantLikers; // Mapping to track who liked which bant
+
+    mapping(uint256 => Comment) private comments; //Mapping to get comment from comment Id
+    mapping(address => uint256[]) private userComments; // Mapping to track user comments from there address
+    // mapping(uint=>mapping(address=>bool)) private commentReporters; // Mapping to track who reported which comment
+    // mapping(uint=>mapping(address=>bool)) private commentLikers; // Mapping to track who liked on which comment
+    mapping(uint256 => uint256[]) private bantComments; // Getting comments for a specific bant
+
+    modifier stopInEmergency() {
+        require(!stopped, 'Dapp has been stopped!');
+        _;
+    }
+    modifier onlyInEmergency() {
+        require(stopped);
+        _;
+    }
+
+    modifier onlyOwner() {
+        require(msg.sender == owner, 'You are not owner!');
+        _;
+    }
+    modifier onlyBantAuthor(uint256 id) {
+        require(msg.sender == Bants[id].author, 'You are not Author!');
+        _;
+    }
+    modifier onlyCommentAuthor(uint256 id) {
+        require(msg.sender == comments[id].author, 'You are not Author!');
+        _;
+    }
+    modifier onlyAllowedUser(address user) {
+        require(
+            users[user].status == accountStatus.Active,
+            'Not a Registered User!'
+        );
+        _;
+    }
+    modifier onlyActiveBant(uint256 id) {
+        require(Bants[id].status == cdStatus.Active, 'Not a active Bant');
+        _;
+    }
+    modifier onlyActiveComment(uint256 id) {
+        require(comments[id].status == cdStatus.Active, 'Not a active comment');
+        _;
+    }
+    modifier usernameTaken(string memory username) {
+        require(!usernames[username], 'Username already taken');
+        _;
+    }
+    // modifier checkUserExists(){require(registeredUser[msg.sender]); _;}
+    modifier checkUserNotExists(address user) {
+        require(
+            users[user].status == accountStatus.NP,
+            'User already registered'
+        );
+        _;
+    }
+
+    event logRegisterUser(address user, uint256 id);
+    event logUserBanned(address user, uint256 id);
+    event logBantCreated(
+        address author,
+        uint256 userid,
+        uint256 bantid,
+        string hashtag
+    );
+    event logBantDeleted(uint256 id, string hashtag);
+
+    constructor() {
+        owner = msg.sender;
+        registerUser('owner', 'owner', '', '', 'owner');
+    }
+
+    fallback() external {
+        revert();
+    }
+
+    //User Details
+    function usernameAvailable(string memory _username)
+        public
+        view
+        returns (bool status)
+    {
+        return !usernames[_username];
+    }
+
+    /// @notice Register a new user
+    /// @param  _username username of username
+    /// @param _name name of person
+    /// @param _imgHash Ipfs Hash of users Profile Image
+    /// @param _coverHash Ipfs Hash of user cover Image
+    /// @param _bio Biography of user
+
+    function registerUser(
+        string memory _username,
+        string memory _name,
+        string memory _imgHash,
+        string memory _coverHash,
+        string memory _bio
+    )
+        public
+        stopInEmergency
+        checkUserNotExists(msg.sender)
+        usernameTaken(_username)
+    {
+        usernames[_username] = true;
+        totalUsers = totalUsers.add(1);
+        uint256 id = totalUsers;
+        users[msg.sender] = User(
+            id,
+            msg.sender,
             _username,
-            _age
+            _name,
+            _imgHash,
+            _coverHash,
+            _bio,
+            accountStatus.Active
         );
-        return true;
+        userAddressFromUsername[_username] = msg.sender;
+        emit logRegisterUser(msg.sender, totalUsers);
     }
 
-    function createPost(
-        bytes32 _parentId,
-        string calldata _contentUri,
-        bytes32 _categoryId
-    ) external {
-        address _owner = msg.sender;
-        bytes32 _contentId = keccak256(abi.encode(_contentUri));
-        bytes32 _postId = keccak256(
-            abi.encodePacked(_owner, _parentId, _contentId)
-        );
-        contentRegistry[_contentId] = _contentUri;
-        postRegistry[_postId].postOwner = _owner;
-        postRegistry[_postId].parentPost = _parentId;
-        postRegistry[_postId].contentId = _contentId;
-        postRegistry[_postId].categoryId = _categoryId;
-        emit ContentAdded(_contentId, _contentUri);
-        emit PostCreated(_postId, _owner, _parentId, _contentId, _categoryId);
+    /// @notice Check accountStatus of user-Registered, Banned or Deleted
+    /// @return status NP, Active, Banned or Deleted
+    function userStatus() public view returns (accountStatus status) {
+        return users[msg.sender].status;
     }
 
-    function voteUp(bytes32 _postId, uint8 _reputationAdded) external {
-        address _voter = msg.sender;
-        bytes32 _category = postRegistry[_postId].categoryId;
-        address _contributor = postRegistry[_postId].postOwner;
-        require(
-            postRegistry[_postId].postOwner != _voter,
-            'you cannot vote your own posts'
-        );
-        require(
-            voteRegistry[_voter][_postId] == false,
-            'Sender already voted in this post'
-        );
-        require(
-            validateReputationChange(_voter, _category, _reputationAdded) ==
-                true,
-            'This address cannot add this amount of reputation points'
-        );
-        postRegistry[_postId].votes += 1;
-        reputationRegistry[_contributor][_category] += _reputationAdded;
-        voteRegistry[_voter][_postId] = true;
-        emit Voted(
-            _postId,
-            _contributor,
-            _voter,
-            reputationRegistry[_contributor][_category],
-            reputationRegistry[_voter][_category],
-            postRegistry[_postId].votes,
-            true,
-            _reputationAdded
-        );
+    /// @notice Change username of a user
+    /// @param _username New username of user
+    function changeUsername(string memory _username)
+        public
+        stopInEmergency
+        onlyAllowedUser(msg.sender)
+        usernameTaken(_username)
+    {
+        users[msg.sender].username = _username;
     }
 
-    function voteDown(bytes32 _postId, uint8 _reputationTaken) external {
-        address _voter = msg.sender;
-        bytes32 _category = postRegistry[_postId].categoryId;
-        address _contributor = postRegistry[_postId].postOwner;
-        require(
-            voteRegistry[_voter][_postId] == false,
-            'Sender already voted in this post'
-        );
-        require(
-            validateReputationChange(_voter, _category, _reputationTaken) ==
-                true,
-            'This address cannot take this amount of reputation points'
-        );
-        postRegistry[_postId].votes >= 1
-            ? postRegistry[_postId].votes -= 1
-            : postRegistry[_postId].votes = 0;
-        reputationRegistry[_contributor][_category] >= _reputationTaken
-            ? reputationRegistry[_contributor][_category] -= _reputationTaken
-            : reputationRegistry[_contributor][_category] = 0;
-        voteRegistry[_voter][_postId] = true;
-        emit Voted(
-            _postId,
-            _contributor,
-            _voter,
-            reputationRegistry[_contributor][_category],
-            reputationRegistry[_voter][_category],
-            postRegistry[_postId].votes,
-            false,
-            _reputationTaken
-        );
-    }
-
-    function validateReputationChange(
-        address _sender,
-        bytes32 _categoryId,
-        uint8 _reputationAdded
-    ) internal view returns (bool _result) {
-        uint80 _reputation = reputationRegistry[_sender][_categoryId];
-        if (_reputation < 2) {
-            _reputationAdded == 1 ? _result = true : _result = false;
-        } else {
-            2**_reputationAdded <= _reputation
-                ? _result = true
-                : _result = false;
-        }
-    }
-
-    event like(uint256 id, uint256 likeCount);
-
-    function likeOnce(uint256 _id, address _ethaddress) external {
-        if (liked[_ethaddress][_id] != true) {
-            likeBant(_id, _ethaddress);
-            (_id, _ethaddress);
-        }
-    }
-
-    function likeBant(uint256 _id, address _ethaddress) internal {
-        liked[_ethaddress][_id] = true;
-        MyBants[_id].lCount += 1;
-        emit like(_id, MyBants[_id].lCount);
-    }
-
-    function DeleteBant(uint256 _id) public onlyOwner {
-        MyBants[_id].BantString = '';
-        MyBants[_id].deleted = true;
-    }
-
-    function addCategory(string calldata _category) external {
-        bytes32 _categoryId = keccak256(abi.encode(_category));
-        categoryRegistry[_categoryId] = _category;
-        emit CategoryCreated(_categoryId, _category);
-    }
-
-    function getUser(address Address)
+    /// @notice Get user details
+    /// @return id Id of user
+    /// @return username username of person
+    /// @return name Name of user
+    /// @return imghash user profile image ipfs hash
+    /// @return coverhash usercCover image ipfs hash
+    /// @return bio Biography of user
+    function getUser()
         public
         view
         returns (
-            string memory EthAddress,
-            uint256 age,
-            string username,
-            uint256 index
+            uint256 id,
+            string memory username,
+            string memory name,
+            string memory imghash,
+            string memory coverhash,
+            string memory bio
         )
     {
-        require(isUser(Address) == true);
         return (
-            users[Address].EthAddress,
-            users[Address].age,
-            users[Address].username,
-            users[Address].index
+            users[msg.sender].id,
+            users[msg.sender].username,
+            users[msg.sender].name,
+            users[msg.sender].profileImgHash,
+            users[msg.sender].profileCoverImgHash,
+            users[msg.sender].bio
         );
     }
 
-    function getContent(bytes32 _contentId)
-        public
-        view
-        returns (string memory)
-    {
-        return contentRegistry[_contentId];
-    }
-
-    function getCategory(bytes32 _categoryId)
-        public
-        view
-        returns (string memory)
-    {
-        return categoryRegistry[_categoryId];
-    }
-
-    function getReputation(address _address, bytes32 _categoryID)
-        public
-        view
-        returns (uint80)
-    {
-        return reputationRegistry[_address][_categoryID];
-    }
-
-    function getPost(bytes32 _postId)
+    /// @notice Get user details
+    /// @param _user address of user
+    /// @return id Id of user
+    /// @return username username of person
+    /// @return name Name of user
+    /// @return imghash user profile image ipfs hash
+    /// @return coverhash usercCover image ipfs hash
+    /// @return bio Biography of user
+    function getUser(address _user)
         public
         view
         returns (
-            address,
-            bytes32,
-            bytes32,
-            int72,
-            bytes32
+            uint256 id,
+            string memory username,
+            string memory name,
+            string memory imghash,
+            string memory coverhash,
+            string memory bio
         )
     {
         return (
-            postRegistry[_postId].postOwner,
-            postRegistry[_postId].parentPost,
-            postRegistry[_postId].contentId,
-            postRegistry[_postId].votes,
-            postRegistry[_postId].categoryId
+            users[_user].id,
+            users[_user].username,
+            users[_user].name,
+            users[_user].profileImgHash,
+            users[_user].profileCoverImgHash,
+            users[_user].bio
         );
+    }
+
+    function createBant(
+        string memory _hashtag,
+        string memory _content,
+        string memory _imghash
+    ) public stopInEmergency onlyAllowedUser(msg.sender) {
+        totalBants = totalBants.add(1);
+        uint256 id = totalBants;
+        Bants[id] = Bant(
+            id,
+            msg.sender,
+            _hashtag,
+            _content,
+            _imghash,
+            block.timestamp,
+            0,
+            0,
+            cdStatus.Active
+        );
+        userBants[msg.sender].push(totalBants);
+        emit logBantCreated(
+            msg.sender,
+            users[msg.sender].id,
+            totalBants,
+            _hashtag
+        );
+    }
+
+    /// @notice Edit a bant
+    /// @param  _id Id of bant
+    /// @param  _hashtag New tag of bant
+    /// @param  _content New content of bant
+    /// @param  _imghash Hash of new image content
+    function editBant(
+        uint256 _id,
+        string memory _hashtag,
+        string memory _content,
+        string memory _imghash
+    )
+        public
+        stopInEmergency
+        onlyActiveBant(_id)
+        onlyAllowedUser(msg.sender)
+        onlyBantAuthor(_id)
+    {
+        Bants[_id].hashtag = _hashtag;
+        Bants[_id].content = _content;
+        Bants[_id].imgHash = _imghash;
+    }
+
+    /// @notice Delete a bant
+    /// @param  _id Id of bant
+    function deleteBant(uint256 _id)
+        public
+        onlyActiveBant(_id)
+        onlyAllowedUser(msg.sender)
+        stopInEmergency
+        onlyBantAuthor(_id)
+    {
+        emit logBantDeleted(_id, Bants[_id].hashtag);
+        delete Bants[_id];
+        Bants[_id].status = cdStatus.Deleted;
+        for (uint256 i = 0; i < bantComments[_id].length; i++) {
+            delete bantComments[_id][i];
+        }
+        delete bantComments[_id];
+    }
+
+    /// @notice Get a Bant
+    /// @param  _id Id of bant
+    /// @return author Bant author address
+    /// @return  hashtag Tag of bant
+    /// @return  content Content of bant
+    /// @return  imgHash Hash of image content
+    /// @return  timestamp Bant creation timestamp
+    /// @return  likeCount No of likes on bant
+    function getBant(uint256 _id)
+        public
+        view
+        onlyAllowedUser(msg.sender)
+        onlyActiveBant(_id)
+        returns (
+            address author,
+            string memory hashtag,
+            string memory content,
+            string memory imgHash,
+            uint256 timestamp,
+            uint256 likeCount
+        )
+    {
+        return (
+            Bants[_id].author,
+            Bants[_id].hashtag,
+            Bants[_id].content,
+            Bants[_id].imgHash,
+            Bants[_id].timestamp,
+            Bants[_id].likeCount
+        );
+    }
+
+    /// @notice Like a bants
+    /// @param _id Id of bant to be likeBant
+    function likeBant(uint256 _id)
+        public
+        onlyAllowedUser(msg.sender)
+        onlyActiveBant(_id)
+    {
+        require(!bantLikers[_id][msg.sender]);
+        Bants[_id].likeCount = Bants[_id].likeCount.add(1);
+        bantLikers[_id][msg.sender] = true;
+    }
+
+    /// @notice Get list of bants done by a user
+    /// @return bantList Array of bant ids
+    function getUserBants()
+        public
+        view
+        onlyAllowedUser(msg.sender)
+        returns (uint256[] memory bantList)
+    {
+        return userBants[msg.sender];
+    }
+
+    /// @notice Get list of bants done by a user
+    /// @param _user User address
+    /// @return bantList Array of dweet ids
+    function getUserBants(address _user)
+        public
+        view
+        onlyAllowedUser(msg.sender)
+        returns (uint256[] memory bantList)
+    {
+        return userBants[_user];
+    }
+
+    /// @notice Create a comment on bant
+    /// @param  _bantid Id of bantList
+    /// @param  _comment content of comment
+    function createComment(uint256 _bantid, string memory _comment)
+        public
+        stopInEmergency
+        onlyAllowedUser(msg.sender)
+        onlyActiveBant(_bantid)
+    {
+        totalComments = totalComments.add(1);
+        uint256 id = totalComments;
+        comments[id] = Comment(
+            id,
+            msg.sender,
+            _bantid,
+            _comment,
+            0,
+            block.timestamp,
+            cdStatus.Active
+        );
+        userComments[msg.sender].push(totalComments);
+        bantComments[_bantid].push(totalComments);
+    }
+
+    function editComment(uint256 _commentid, string memory _comment)
+        public
+        stopInEmergency
+        onlyAllowedUser(msg.sender)
+        onlyActiveComment(_commentid)
+        onlyCommentAuthor(_commentid)
+    {
+        comments[_commentid].content = _comment;
+    }
+
+    /// @notice Delete a comment
+    /// @param _id Id of comment to be Deleted
+    function deleteComment(uint256 _id)
+        public
+        stopInEmergency
+        onlyActiveComment(_id)
+        onlyAllowedUser(msg.sender)
+        onlyCommentAuthor(_id)
+    {
+        delete comments[_id];
+        comments[_id].status = cdStatus.Deleted;
+    }
+
+    /// @notice Get a comment
+    /// @param  _id Id of comment
+    /// @return author Address of author
+    /// @return bantId Id of bant
+    /// @return content content of comment
+    /// @return likeCount Likes on commment
+    /// @return timestamp Comment creation timestamp
+    /// @return status status of Comment active-banned-deleted
+    function getComment(uint256 _id)
+        public
+        view
+        onlyAllowedUser(msg.sender)
+        onlyActiveComment(_id)
+        returns (
+            address author,
+            uint256 bantId,
+            string memory content,
+            uint256 likeCount,
+            uint256 timestamp,
+            cdStatus status
+        )
+    {
+        return (
+            comments[_id].author,
+            comments[_id].bantId,
+            comments[_id].content,
+            comments[_id].likeCount,
+            comments[_id].timestamp,
+            comments[_id].status
+        );
+    }
+
+    /// @notice Get comments done by user
+    /// @return commentList Array of comment ids
+    /// @dev Though onlyAllowedUser can be bypassed easily but still keeping for calls from frontend
+    function getUserComments()
+        public
+        view
+        onlyAllowedUser(msg.sender)
+        returns (uint256[] memory commentList)
+    {
+        return userComments[msg.sender];
+    }
+
+    /// @notice Get comments done by user
+    /// @param _user address of user
+    /// @return commentList Array of comment ids
+    function getUserComments(address _user)
+        public
+        view
+        onlyAllowedUser(msg.sender)
+        returns (uint256[] memory commentList)
+    {
+        return userComments[_user];
+    }
+
+    /// @notice Get comments on a dweet
+    /// @return list Array of comment ids
+    function getBantComments(uint256 _id)
+        public
+        view
+        onlyAllowedUser(msg.sender)
+        onlyActiveBant(_id)
+        returns (uint256[] memory list)
+    {
+        return (bantComments[_id]);
+    }
+
+    /*
+     ****************************************Owner Admin ******************************************************************************************
+     */
+    /// @notice Get balance of contract
+    /// @return balance balance of contract
+    function getBalance() public view onlyOwner returns (uint256 balance) {
+        return address(this).balance;
+    }
+
+    /// @notice Withdraw contract funds to owner
+    /// @param _amount Amount to be withdrawn
+    function transferContractBalance(uint256 _amount) public onlyOwner {
+        require(
+            _amount <= address(this).balance,
+            'Withdraw amount greater than balance'
+        );
+        msg.sender.transfer(_amount);
+    }
+
+    function stopDapp() public onlyOwner {
+        require(!stopped, 'Already stopped');
+        stopped = true;
+    }
+
+    function startDapp() public onlyOwner {
+        require(stopped, 'Already started');
+        stopped = false;
+    }
+
+    function changeOwner(address payable _newOwner) public onlyOwner {
+        owner = _newOwner;
     }
 }
