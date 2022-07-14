@@ -1,17 +1,23 @@
 import { useToast } from '@chakra-ui/react';
 import { ethers } from 'ethers';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+const dbantaAbi = require('../assets/Dbanta.json').abi;
+
+const wanted = { name: "maticmum", label: "Polygon Mumbai" };
 
 const AuthContext = React.createContext({});
 
 export const useACtx = () => {
   return React.useContext(AuthContext);
 };
+
 const AuthProvider = ({ children }) => {
   const [isAuth, setAuth] = useState(false);
+  const [contract, setContract] = useState(undefined);
   const toast = useToast();
   let _PROVIDER = useRef(null);
   let _SIGNER = useRef(null);
+  
 
   const detectCurrentProvider = useCallback(async () => {
     if (window.ethereum) {
@@ -26,7 +32,7 @@ const AuthProvider = ({ children }) => {
       });
       let net = await _PROVIDER.current.getNetwork();
 
-      if (net.name === 'rinkeby') {
+      if (net.name === wanted.name) {
         let acct = await _PROVIDER.current.listAccounts();
         acct[0] && setAuth(acct[0]);
       }
@@ -37,13 +43,15 @@ const AuthProvider = ({ children }) => {
   const login = async () => {
     if (_PROVIDER.current) {
       let net = await _PROVIDER.current.getNetwork();
-      if (net.name === 'rinkeby') {
+      if (net.name === wanted.name) {
         let accounts = await _PROVIDER.current.send('eth_requestAccounts', []);
         _SIGNER.current = _PROVIDER.current.getSigner();
+        let dbanta = new ethers.Contract(process.env.REACT_APP_CONTRACT_ADDRESS, dbantaAbi, _SIGNER.current);
+        setContract(dbanta);
         setAuth(accounts[0]);
       } else {
         toast({
-          title: 'Please connect to Rinkeby',
+          title: `Please connect to ${wanted.label}`,
           status: 'error',
           duration: 9000,
           isClosable: true,
@@ -69,6 +77,7 @@ const AuthProvider = ({ children }) => {
         window.localStorage.removeItem('userAccount');
 
         setAuth(false);
+        setContract(undefined)
         return;
       case 'LOGIN':
         !isAuth && login();
@@ -84,7 +93,7 @@ const AuthProvider = ({ children }) => {
   }, [detectCurrentProvider]);
 
   return (
-    <AuthContext.Provider value={{ isAuth, _PROVIDER, _SIGNER, dispatchEvent }}>
+    <AuthContext.Provider value={{ isAuth, _PROVIDER, _SIGNER, contract, dispatchEvent }}>
       {children}
     </AuthContext.Provider>
   );
