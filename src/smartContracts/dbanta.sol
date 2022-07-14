@@ -61,6 +61,7 @@ contract Dbanta {
     struct User {
         uint256 id;
         address ethAddress;
+        address [] followers;
         string username;
         string name;
         string profileImgHash;
@@ -173,6 +174,7 @@ contract Dbanta {
     event logBantCreated(address payable author, uint256 userid, uint256 bantid, string hashtag, uint tipVote);
     event logBantDeleted(uint256 id, string hashtag);
     event bantVoted(address payable author, uint256 userid, uint256 bantid, uint tipVote);
+    event newfollowers(address user, address follower);
 
 
     constructor() {
@@ -215,9 +217,11 @@ contract Dbanta {
         usernames[_username] = true; 
         totalUsers = totalUsers.add(1);
         uint256 id = totalUsers;
+        address[] memory follow;
         users[msg.sender] = User(
             id,
             msg.sender,
+            follow,
             _username,
             _name,
             _imgHash,
@@ -227,6 +231,12 @@ contract Dbanta {
         );
         userAddressFromUsername[_username] = msg.sender;
         emit logRegisterUser(msg.sender, totalUsers);
+    }
+
+    function followusers(address _person) public{
+     User storage _user = users [_person];
+     _user.followers.push(msg.sender);
+     emit newfollowers(_person, msg.sender);
     }
 
     /// @notice Check accountStatus of user-Registered, Banned or Deleted
