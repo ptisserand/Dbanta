@@ -246,6 +246,11 @@ contract Dbanta {
         users[msg.sender].username = _username;
     }
 
+    function getTotalUserBants() public view returns(uint256){
+
+        return(userBants [msg.sender].length);
+    }
+
     /// @notice Get user details
     /// @return id Id of user
     /// @return username username of person
