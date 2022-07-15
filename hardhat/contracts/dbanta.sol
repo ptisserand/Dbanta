@@ -60,7 +60,7 @@ contract Dbanta {
     struct User {
         uint256 id;
         address ethAddress;
-        address [] followers;
+        address[] followers;
         string username;
         string name;
         string profileImgHash;
@@ -186,6 +186,7 @@ contract Dbanta {
         uint256 tipVote
     );
     event logBantDeleted(uint256 id, string hashtag);
+    event logBantEdited(uint256 id);
     event bantVoted(
         address payable author,
         uint256 userid,
@@ -193,7 +194,6 @@ contract Dbanta {
         uint256 tipVote
     );
     event newfollowers(address user, address follower);
-
 
     constructor() {
         owner = msg.sender;
@@ -251,15 +251,19 @@ contract Dbanta {
         emit logRegisterUser(msg.sender, totalUsers);
     }
 
-    function followusers(address _person) public{
-     User storage _user = users [_person];
-     _user.followers.push(msg.sender);
-     emit newfollowers(_person, msg.sender);
+    function followusers(address _person) public {
+        User storage _user = users[_person];
+        _user.followers.push(msg.sender);
+        emit newfollowers(_person, msg.sender);
     }
 
     /// @notice Check accountStatus of user-Registered, Banned or Deleted
     /// @return status NP, Active, Banned or Deleted
-    function userStatus(address _useraddr) public view returns (accountStatus status) {
+    function userStatus(address _useraddr)
+        public
+        view
+        returns (accountStatus status)
+    {
         return users[_useraddr].status;
     }
 
@@ -274,9 +278,8 @@ contract Dbanta {
         users[msg.sender].username = _username;
     }
 
-    function getTotalUserBants() public view returns(uint256){
-
-        return(userBants [msg.sender].length);
+    function getTotalUserBants() public view returns (uint256) {
+        return (userBants[msg.sender].length);
     }
 
     /// @notice Get user details
@@ -379,6 +382,7 @@ contract Dbanta {
         Bants[_id].hashtag = _hashtag;
         Bants[_id].content = _content;
         Bants[_id].imgHash = _imghash;
+        emit logBantEdited(_id);
     }
 
     /// @notice Delete a bant

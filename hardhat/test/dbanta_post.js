@@ -75,13 +75,14 @@ describe("Dbanta post", function () {
             let tx = await createPost(Dbanta, alice);
             expect(tx).to.emit(Dbanta, "logBantCreated");
             let old_bant = await Dbanta.connect(bob).getBant(1);
-            await Dbanta.connect(alice).editBant(1, input.hashtag, input.content, input.imgHash);
+            tx = await Dbanta.connect(alice).editBant(1, input.hashtag, input.content, input.imgHash);
             let bant = await Dbanta.connect(bob).getBant(1);
             expect(bant.author).to.equal(old_bant.author);
             expect(bant.hashtag).to.not.equal(old_bant.hashtag);
             expect(bant.hashtag).to.equal(input.hashtag);
             expect(bant.content).to.equal(input.content);
             expect(bant.imgHash).to.equal(input.imgHash);
+            expect(tx).to.emit(Dbanta, "logBantEdited");
         });
 
         it("Bant can't be edited by another user", async function () {
