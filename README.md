@@ -1,3 +1,21 @@
+## Environment setup
+
+You need to create file named `.env` with the following contents:
+```
+##### React configuration
+REACT_APP_PINATA_KEY="Pinata Key"
+REACT_APP_PINATA_SECRET="Pinata secret"
+REACT_APP_CONTRACT_ADDRESS="0x contract address on chain"
+
+######
+# Hardhat configuration
+POLYGON_MUMBAI_RPC="Polygon mumbai RPC url"
+POLYGON_MAINNET_RPC="Polygon mainent RPC url"
+POLYGONSCAN_API_KEY="Polygonscan API key for contract verification"
+PRIVATE_KEY=0x private key
+```
+
+
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
 ## Available Scripts
