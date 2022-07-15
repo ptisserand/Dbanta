@@ -51,17 +51,16 @@ library SafeMath {
     }
 }
 
-
 contract Dbanta {
     using SafeMath for uint256;
     address public owner; //Owner is also a maintainer
     bool public stopped = false;
-    uint public bantCount = 0;
+    uint256 public bantCount = 0;
 
     struct User {
         uint256 id;
         address ethAddress;
-        address [] followers;
+        address[] followers;
         string username;
         string name;
         string profileImgHash;
@@ -79,8 +78,17 @@ contract Dbanta {
         uint256 timestamp;
         uint256 likeCount;
         uint256 reportCount;
-        uint tipVote;
+        uint256 tipVote;
         cdStatus status; // Bant Active-Deleted-Banned
+    }
+
+    struct Rebant {
+        uint256 bantId;
+        uint256 rebantid;
+        uint256 rebantdate;
+        //bool rebant;
+        uint256 rebantCount;
+        // address [] rebantas;
     }
 
     struct Comment {
@@ -90,16 +98,25 @@ contract Dbanta {
         string content;
         uint256 likeCount;
         uint256 timestamp;
-        cdStatus status; 
+        cdStatus status;
     }
 
     uint256 public totalBants = 0;
     uint256 public totalComments = 0;
     uint256 public totalUsers = 0;
+    uint256 public totalRebants = 0;
 
-    enum accountStatus {Active, inActive, Deactivated}
+    enum accountStatus {
+        Active,
+        inActive,
+        Deactivated
+    }
 
-    enum cdStatus {Active, inActive, Deleted } 
+    enum cdStatus {
+        Active,
+        inActive,
+        Deleted
+    }
 
     //Comment-Bant status
     // enum BantStatus{NP,Active, Banned, Deleted}
@@ -111,6 +128,9 @@ contract Dbanta {
 
     mapping(uint256 => Bant) private Bants; // mapping to get bant from Id
     mapping(address => uint256[]) private userBants; // Array to store bants(Id) done by user
+    mapping(address => Rebant[]) private userRebants;
+    mapping(uint256 => Rebant) private rebants;
+    mapping(uint256 => bool) private rebantexists;
     // mapping(uint=>address[]) private bantLikersList;
     mapping(uint256 => mapping(address => bool)) private bantLikers; // Mapping to track who liked which bant
 
@@ -171,11 +191,22 @@ contract Dbanta {
 
     event logRegisterUser(address user, uint256 id);
     event logUserBanned(address user, uint256 id);
-    event logBantCreated(address payable author, uint256 userid, uint256 bantid, string hashtag, uint tipVote);
+    event logBantCreated(
+        address payable author,
+        uint256 userid,
+        uint256 bantid,
+        string hashtag,
+        uint256 tipVote
+    );
     event logBantDeleted(uint256 id, string hashtag);
-    event bantVoted(address payable author, uint256 userid, uint256 bantid, uint tipVote);
+    event bantVoted(
+        address payable author,
+        uint256 userid,
+        uint256 bantid,
+        uint256 tipVote
+    );
     event newfollowers(address user, address follower);
-
+    event logRebantCreated(uint256 rebantid, uint256 bantid, address user);
 
     constructor() {
         owner = msg.sender;
@@ -186,7 +217,7 @@ contract Dbanta {
         revert();
     }
 
-//User Details
+    //User Details
     function usernameAvailable(string memory _username)
         public
         view
@@ -214,7 +245,7 @@ contract Dbanta {
         checkUserNotExists(msg.sender)
         usernameTaken(_username)
     {
-        usernames[_username] = true; 
+        usernames[_username] = true;
         totalUsers = totalUsers.add(1);
         uint256 id = totalUsers;
         address[] memory follow;
@@ -233,10 +264,37 @@ contract Dbanta {
         emit logRegisterUser(msg.sender, totalUsers);
     }
 
-    function followusers(address _person) public{
-     User storage _user = users [_person];
-     _user.followers.push(msg.sender);
-     emit newfollowers(_person, msg.sender);
+    function followusers(address _person) public {
+        User storage _user = users[_person];
+        _user.followers.push(msg.sender);
+        emit newfollowers(_person, msg.sender);
+    }
+
+    function rebantusersbant(uint256 _id, uint256 _rebantid)
+        public
+        stopInEmergency
+        onlyAllowedUser(msg.sender)
+        returns (uint256)
+    {
+        Bant memory _bant = Bants[_id];
+        Rebant storage _rebant = rebants[_rebantid];
+
+        require(!(_bant.author == address(0)));
+
+        if (rebantexists[_rebant.rebantid]) {
+            _rebant.rebantCount++;
+
+            userRebants[msg.sender].push(_rebant);
+        } else {
+            totalRebants = totalRebants.add(1);
+            uint256 id = totalRebants;
+
+            userRebants[msg.sender].push(
+                Rebant(_bant.bantId, id, block.timestamp, 1)
+            );
+        }
+        emit logRebantCreated(_id, _bant.bantId, msg.sender);
+        return _bant.bantId;
     }
 
     /// @notice Check accountStatus of user-Registered, Banned or Deleted
@@ -256,9 +314,8 @@ contract Dbanta {
         users[msg.sender].username = _username;
     }
 
-    function getTotalUserBants() public view returns(uint256){
-
-        return(userBants [msg.sender].length);
+    function getTotalUserBants() public view returns (uint256) {
+        return (userBants[msg.sender].length);
     }
 
     /// @notice Get user details
@@ -320,7 +377,6 @@ contract Dbanta {
         );
     }
 
- 
     function createBant(
         string memory _hashtag,
         string memory _content,
@@ -329,7 +385,7 @@ contract Dbanta {
         totalBants = totalBants.add(1);
         uint256 id = totalBants;
         require(bytes(_content).length > 0);
-        bantCount ++;
+        bantCount++;
         Bants[id] = Bant(
             id,
             payable(msg.sender),
@@ -341,7 +397,6 @@ contract Dbanta {
             0,
             0,
             cdStatus.Active
-            
         );
         userBants[msg.sender].push(totalBants);
         emit logBantCreated(
@@ -353,12 +408,12 @@ contract Dbanta {
         );
     }
 
-    function tipPost(uint _id) public payable {
+    function tipPost(uint256 _id) public payable {
         // Make sure the id is valid
         require(_id > 0 && _id <= bantCount);
         // Fetch the post
         Bant memory _bant = Bants[_id];
-        User memory _user = users [msg.sender];
+        User memory _user = users[msg.sender];
         // Fetch the author
         address payable _author = _bant.author;
         // Pay the author by sending them tokens
@@ -366,10 +421,10 @@ contract Dbanta {
         // Incremet the tip amount
         _bant.tipVote = _bant.tipVote + msg.value;
         // Update the post
-       Bants[_id] = _bant;
+        Bants[_id] = _bant;
         // Trigger an event
         //address payable author, uint256 userid, uint256 bantid, uint tipVote
-        emit bantVoted(_author, _bant.bantId,_user.id, _bant.tipVote);
+        emit bantVoted(_author, _bant.bantId, _user.id, _bant.tipVote);
     }
 
     /// @notice Edit a bant
@@ -478,7 +533,6 @@ contract Dbanta {
     {
         return userBants[_user];
     }
-
 
     /// @notice Create a comment on bant
     /// @param  _bantid Id of bantList
@@ -594,9 +648,6 @@ contract Dbanta {
     {
         return (bantComments[_id]);
     }
-
-   
-    
 
     /*
      ****************************************Owner Admin ******************************************************************************************
