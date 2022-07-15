@@ -1,5 +1,5 @@
 const { expect } = require("chai");
-const { loadFixture } = require("ethereum-waffle");
+const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { ethers } = require("hardhat");
 
 describe("Dbanta contract", function () {
@@ -10,10 +10,21 @@ describe("Dbanta contract", function () {
 
         await Dbanta.deployed();
 
-        return { Dbanta, DbantaFactory, owner, alice, bob };
+        return { Dbanta, owner, alice, bob };
     }
 
-
+    async function aliceIsRegisteredFixture() {
+        const { Dbanta, owner, alice, bob } = await loadFixture(deployDbantaFixture);
+        const input = {
+            username: "alice",
+            name: "Alice Cooper",
+            imghash: "img hash",
+            coverhash: "cover hash",
+            bio: "American rock singer whose career spans over 54 years"
+        };
+        await Dbanta.connect(alice).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
+        return { Dbanta, owner, alice, bob };
+    }
 
     describe("Deploy", function () {
         it("Only owner can change owner", async function () {
@@ -45,7 +56,12 @@ describe("Dbanta contract", function () {
             expect(name).to.equal("owner");
         });
 
-        it("User can register", async function() {
+        it("'Alice' username is available", async function () {
+            const { Dbanta } = await loadFixture(deployDbantaFixture);
+            expect(await Dbanta.usernameAvailable("alice")).to.equal(true);
+        });
+
+        it("User can register", async function () {
             const { Dbanta, alice } = await loadFixture(deployDbantaFixture);
             const input = {
                 username: "alice",
@@ -53,7 +69,7 @@ describe("Dbanta contract", function () {
                 imghash: "img hash",
                 coverhash: "cover hash",
                 bio: "American rock singer whose career spans over 54 years"
-            }; 
+            };
             await Dbanta.connect(alice).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
             const userData = await Dbanta.getUser(alice.address);
             expect(userData.username).to.equal(input.username);
@@ -65,8 +81,8 @@ describe("Dbanta contract", function () {
             console.log(status);
         });
 
-        it("User can only register once", async function() {
-            const { Dbanta, alice } = await loadFixture(deployDbantaFixture);
+        it("User can only register once", async function () {
+            const { Dbanta, alice } = await loadFixture(aliceIsRegisteredFixture);
             const input = {
                 username: "carl",
                 name: "Carl Cox",
@@ -75,12 +91,41 @@ describe("Dbanta contract", function () {
                 bio: "British house and techno club DJ, as well as radio DJ and record producer"
             };
 
-
             await expect(
                 Dbanta.connect(alice).registerUser(input.username, input.name, input.imgHash, input.coverHash, input.bio)
             ).to.be.reverted;
 
-        })
+        });
+
+        it("Username can only be registered once", async function () {
+            const { Dbanta, bob } = await loadFixture(aliceIsRegisteredFixture);
+            const input = {
+                username: "alice",
+                name: "Alice Cooper",
+                imghash: "img hash",
+                coverhash: "cover hash",
+                bio: "American rock singer whose career spans over 54 years"
+            };
+            await expect(
+                Dbanta.connect(bob).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio)
+            ).to.be.reverted;
+        });
+
+        it("User register emit event", async function () {
+            const { Dbanta, bob } = await loadFixture(deployDbantaFixture);
+            const input = {
+                username: "carl",
+                name: "Carl Cox",
+                imgHash: "",
+                coverHash: "",
+                bio: "British house and techno club DJ, as well as radio DJ and record producer"
+            };
+
+            await expect(
+                Dbanta.connect(bob).registerUser(input.username, input.name, input.imgHash, input.coverHash, input.bio)
+            ).to.emit(Dbanta, "logRegisterUser");
+
+        });
     });
 
 
