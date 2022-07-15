@@ -8,7 +8,9 @@ const pinJSONToIPFS = async(JSONBody) => {
         let payload = {
             "pinataContent": JSONBody,
             "pinataMetadata": {
-                "name": "DBanta"
+                "keyvalues": {
+                    "project": "dbanta"
+                }
             }
         }
         console.log(payload)
