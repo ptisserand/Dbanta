@@ -199,6 +199,7 @@ contract Dbanta {
         uint256 tipVote
     );
     event logBantDeleted(uint256 id, string hashtag);
+    event logBantEdited(uint256 id);
     event bantVoted(
         address payable author,
         uint256 userid,
@@ -299,8 +300,12 @@ contract Dbanta {
 
     /// @notice Check accountStatus of user-Registered, Banned or Deleted
     /// @return status NP, Active, Banned or Deleted
-    function userStatus() public view returns (accountStatus status) {
-        return users[msg.sender].status;
+    function userStatus(address _useraddr)
+        public
+        view
+        returns (accountStatus status)
+    {
+        return users[_useraddr].status;
     }
 
     /// @notice Change username of a user
@@ -447,6 +452,7 @@ contract Dbanta {
         Bants[_id].hashtag = _hashtag;
         Bants[_id].content = _content;
         Bants[_id].imgHash = _imghash;
+        emit logBantEdited(_id);
     }
 
     /// @notice Delete a bant

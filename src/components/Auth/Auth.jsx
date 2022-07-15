@@ -1,11 +1,24 @@
 import { Button } from '@chakra-ui/react';
-import { BiLogInCircle } from 'react-icons/bi';
+import { BiLogInCircle, BiLogOutCircle } from 'react-icons/bi';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useACtx } from '../../context/AuthContext';
+import { getUserInfo } from '../../util/backend';
 
 function Auth() {
-  const { dispatchEvent, isAuth } = useACtx();
+  const { dispatchEvent, isAuth, contract } = useACtx();
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    const fetchName = async (contract, isAuth) => {
+      const user = await getUserInfo(contract, isAuth);
+      setName(user.name);
+    }
+    if ((isAuth !== false) && (contract !== undefined)) {
+      fetchName(contract, isAuth).catch(console.error);
+    }
+  }, [isAuth, contract]);
+
   return (
     <>
       {!isAuth && (
@@ -17,7 +30,18 @@ function Auth() {
           Login
         </Button>
       )}
-      {isAuth && <Button>{isAuth.substring(0, 10)}...</Button>}
+      {isAuth && (
+        <>
+          <Button>{name}</Button>
+          <Button
+            colorScheme="red"
+            rightIcon={<BiLogOutCircle />}
+            onClick={() => dispatchEvent('LOGOUT', null)}
+          >
+            Logout
+          </Button>
+        </>
+      )}
     </>
   );
 }

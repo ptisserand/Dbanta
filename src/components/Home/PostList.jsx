@@ -16,6 +16,7 @@ import { BsThreeDots } from 'react-icons/bs';
 import { usePCtx } from '../../context/PostsContext';
 import { Link } from 'react-router-dom';
 import PostActionsBar from '../Posts/PostActionsBar';
+import { Menu, MenuButton, MenuList, MenuItem } from '@chakra-ui/react';
 
 function PostList() {
   const { posts, loading } = usePCtx();
@@ -60,12 +61,7 @@ function Post({ post }) {
       w={['full', '95%']}
       style={{ margin: 'auto', marginTop: '10px', marginBottom: '25px' }}
     >
-      <HStack
-        as={Link}
-        to={`/banta/${post.id}`}
-        justifyContent={'space-between'}
-        p="4"
-      >
+      <HStack justifyContent={'space-between'} p="4">
         <HStack spacing="5">
           <Avatar
             onClick={setActivePost}
@@ -91,7 +87,7 @@ function Post({ post }) {
             </Text>
           </Box>
         </HStack>
-        <IconButton variant="flushed" icon={<BsThreeDots />} fontSize="2xl" />
+        <PostMenu />
       </HStack>
       {post.image && (
         <Link to={`/banta/${post.id}`}>
@@ -116,5 +112,19 @@ function Post({ post }) {
         />{' '}
       </Box>
     </Stack>
+  );
+}
+
+function PostMenu() {
+  return (
+    <Menu>
+      <MenuButton>
+        <IconButton variant="ghost" icon={<BsThreeDots />} fontSize="2xl" />
+      </MenuButton>
+      <MenuList>
+        <MenuItem>Mint Post</MenuItem>
+        <MenuItem>Report Post</MenuItem>
+      </MenuList>
+    </Menu>
   );
 }
