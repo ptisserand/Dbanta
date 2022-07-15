@@ -11,10 +11,9 @@ describe("Dbanta contract", function () {
         await Dbanta.deployed();
 
         return { Dbanta, owner, alice, bob };
-    }
+    };
 
-    async function aliceIsRegisteredFixture() {
-        const { Dbanta, owner, alice, bob } = await loadFixture(deployDbantaFixture);
+    async function registeringAlice(Dbanta, alice) {
         const input = {
             username: "alice",
             name: "Alice Cooper",
@@ -23,8 +22,8 @@ describe("Dbanta contract", function () {
             bio: "American rock singer whose career spans over 54 years"
         };
         await Dbanta.connect(alice).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
-        return { Dbanta, owner, alice, bob };
-    }
+    };
+
 
     describe("Deploy", function () {
         it("Only owner can change owner", async function () {
@@ -61,6 +60,12 @@ describe("Dbanta contract", function () {
             expect(await Dbanta.usernameAvailable("alice")).to.equal(true);
         });
 
+        it("'Alice' username is not available after 'alice' is registered", async function() {
+            const { Dbanta, alice} = await loadFixture(deployDbantaFixture);
+            await registeringAlice(Dbanta, alice);
+            expect(await Dbanta.usernameAvailable("alice")).to.equal(false);
+        });
+
         it("User can register", async function () {
             const { Dbanta, alice } = await loadFixture(deployDbantaFixture);
             const input = {
@@ -82,7 +87,8 @@ describe("Dbanta contract", function () {
         });
 
         it("User can only register once", async function () {
-            const { Dbanta, alice } = await loadFixture(aliceIsRegisteredFixture);
+            const { Dbanta, alice} = await loadFixture(deployDbantaFixture);
+            await registeringAlice(Dbanta, alice);
             const input = {
                 username: "carl",
                 name: "Carl Cox",
@@ -98,7 +104,8 @@ describe("Dbanta contract", function () {
         });
 
         it("Username can only be registered once", async function () {
-            const { Dbanta, bob } = await loadFixture(aliceIsRegisteredFixture);
+            const { Dbanta, alice, bob} = await loadFixture(deployDbantaFixture);
+            await registeringAlice(Dbanta, alice);
             const input = {
                 username: "alice",
                 name: "Alice Cooper",
@@ -127,7 +134,5 @@ describe("Dbanta contract", function () {
 
         });
     });
-
-
 
 });
