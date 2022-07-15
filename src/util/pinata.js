@@ -2,7 +2,7 @@ import axios from 'axios';
 const key = process.env.REACT_APP_PINATA_KEY;
 const secret = process.env.REACT_APP_PINATA_SECRET;
 
-const pinJSONToIPFS = async(JSONBody) => {
+const pinJSONToIPFS = async (JSONBody) => {
     const url = `https://api.pinata.cloud/pinning/pinJSONToIPFS`;
     try {
         let payload = {
@@ -23,8 +23,9 @@ const pinJSONToIPFS = async(JSONBody) => {
         return {
             success: true,
             url: "https://gateway.pinata.cloud/ipfs/" + response.data.IpfsHash,
+            cid: response.data.IpfsHash
         }
-    } catch(error) {
+    } catch (error) {
         console.log(error)
         return {
             success: false,
@@ -33,4 +34,25 @@ const pinJSONToIPFS = async(JSONBody) => {
     }
 };
 
-export default pinJSONToIPFS;
+const unpinIPFS = async (cid) => {
+    const url = `https://api.pinata.cloud/pinning/unpin/${cid}`;
+    try {
+        let response = await axios.delete(url, {
+            headers: {
+                pinata_api_key: key,
+                pinata_secret_api_key: secret,
+            }
+        });
+        return {
+            success: true
+        }
+    } catch (error) {
+        console.error(error);
+        return {
+            success: false,
+            message: error.message
+        }
+    }
+}
+
+export { pinJSONToIPFS, unpinIPFS };
