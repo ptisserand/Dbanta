@@ -17,3 +17,8 @@ export const fetchPosts = async (contract, address) => {
     console.info("Fetching posts...");
     return [];
 }
+
+export const createPost = async (contract, data) => {
+    let tx = await contract.createBant(data.hashtag, data.content, data.imgHash);
+    return tx;
+}
