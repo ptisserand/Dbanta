@@ -324,35 +324,6 @@ contract Dbanta {
     }
 
     /// @notice Get user details
-    /// @return id Id of user
-    /// @return username username of person
-    /// @return name Name of user
-    /// @return imghash user profile image ipfs hash
-    /// @return coverhash usercCover image ipfs hash
-    /// @return bio Biography of user
-    function getUser()
-        public
-        view
-        returns (
-            uint256 id,
-            string memory username,
-            string memory name,
-            string memory imghash,
-            string memory coverhash,
-            string memory bio
-        )
-    {
-        return (
-            users[msg.sender].id,
-            users[msg.sender].username,
-            users[msg.sender].name,
-            users[msg.sender].profileImgHash,
-            users[msg.sender].profileCoverImgHash,
-            users[msg.sender].bio
-        );
-    }
-
-    /// @notice Get user details
     /// @param _user address of user
     /// @return id Id of user
     /// @return username username of person
