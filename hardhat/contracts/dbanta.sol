@@ -77,6 +77,7 @@ contract Dbanta {
         string imgHash;
         uint256 timestamp;
         uint256 likeCount;
+        uint256 rebantCount;
         uint256 reportCount;
         uint256 tipVote;
         cdStatus status; // Bant Active-Deleted-Banned
@@ -86,9 +87,7 @@ contract Dbanta {
         uint256 bantId;
         uint256 rebantid;
         uint256 rebantdate;
-        //bool rebant;
-        uint256 rebantCount;
-        // address [] rebantas;
+        address rebanta;
     }
 
     struct Comment {
@@ -130,7 +129,6 @@ contract Dbanta {
     mapping(address => uint256[]) private userBants; // Array to store bants(Id) done by user
     mapping(address => Rebant[]) private userRebants;
     mapping(uint256 => Rebant) private rebants;
-    mapping(uint256 => bool) private rebantexists;
     // mapping(uint=>address[]) private bantLikersList;
     mapping(uint256 => mapping(address => bool)) private bantLikers; // Mapping to track who liked which bant
 
@@ -271,31 +269,27 @@ contract Dbanta {
         emit newfollowers(_person, msg.sender);
     }
 
-    function rebantusersbant(uint256 _id, uint256 _rebantid)
+    function rebantusersbant(uint256 _id)
         public
         stopInEmergency
         onlyAllowedUser(msg.sender)
         returns (uint256)
     {
-        Bant memory _bant = Bants[_id];
-        Rebant storage _rebant = rebants[_rebantid];
+        Bant storage _bant = Bants[_id];
 
         require(!(_bant.author == address(0)));
 
-        if (rebantexists[_rebant.rebantid]) {
-            _rebant.rebantCount++;
+        _bant.rebantCount++;
+        totalRebants = totalRebants.add(1);
+        uint256 id = totalRebants;
 
-            userRebants[msg.sender].push(_rebant);
-        } else {
-            totalRebants = totalRebants.add(1);
-            uint256 id = totalRebants;
+        Rebant memory rebant = Rebant(_bant.bantId, id, block.timestamp, msg.sender);
+        rebants[id] = rebant;
 
-            userRebants[msg.sender].push(
-                Rebant(_bant.bantId, id, block.timestamp, 1)
-            );
-        }
-        emit logRebantCreated(_id, _bant.bantId, msg.sender);
-        return _bant.bantId;
+        userRebants[msg.sender].push(rebant);
+        emit logRebantCreated(id, _bant.bantId, msg.sender);
+
+        return id;
     }
 
     /// @notice Check accountStatus of user-Registered, Banned or Deleted
@@ -369,6 +363,7 @@ contract Dbanta {
             _content,
             _imghash,
             block.timestamp,
+            0,
             0,
             0,
             0,
