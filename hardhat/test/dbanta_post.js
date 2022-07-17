@@ -9,7 +9,7 @@ function getRandomInt(max) {
 describe("Dbanta post", function () {
     async function aliceIsRegisteredFixture() {
         const DbantaFactory = await ethers.getContractFactory("Dbanta");
-        const [owner, alice, bob] = await ethers.getSigners();
+        const [owner, alice, bob, carl] = await ethers.getSigners();
         const Dbanta = await DbantaFactory.deploy();
 
         await Dbanta.deployed();
@@ -21,7 +21,7 @@ describe("Dbanta post", function () {
             bio: "American rock singer whose career spans over 54 years"
         };
         await Dbanta.connect(alice).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
-        return { Dbanta, owner, alice, bob };
+        return { Dbanta, owner, alice, bob, carl };
     }
 
     async function createPost(Dbanta, user) {
@@ -32,6 +32,11 @@ describe("Dbanta post", function () {
             imgHash: `my image hash-${random_num}`
         }
         const tx = await Dbanta.connect(user).createBant(input.hashtag, input.content, input.imgHash);
+        return tx;
+    }
+
+    async function registerUser(Dbanta, user, input) {
+        const tx = await Dbanta.connect(user).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
         return tx;
     }
 
@@ -98,11 +103,22 @@ describe("Dbanta post", function () {
             await expect(
                 Dbanta.connect(bob).editBant(1, input.hashtag, input.content, input.imgHash)
             ).to.be.reverted;
-
         });
 
-    });
+        it("User can delete a bant", async function() {
+            const { Dbanta, alice, bob } = await loadFixture(aliceIsRegisteredFixture);
+            let tx = await createPost(Dbanta, alice);
+            expect(tx).to.emit(Dbanta, "logBantCreated");
+            await expect(
+                Dbanta.connect(bob).deleteBant(1)
+            ).to.be.reverted;
+            tx = await Dbanta.connect(alice).deleteBant(1);
+            expect(tx).to.emit(Dbanta, "logBantDeleted");
+            let bant = await Dbanta.connect(alice).getBant(1);
+            expect(bant.author).to.equal(0);
+        })
 
+    });
 
 
 });
