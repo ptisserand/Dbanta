@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: MIT
-
 pragma solidity >=0.7.0 <0.8.9;
+
+interface IDbantaNFT {
+    function tokenURI(uint256 tokenId) external view returns(string memory);
+    function safeMint(address to, string memory uri) external;
+}
 
 library SafeMath {
     function add(uint256 a, uint256 b) internal pure returns (uint256) {
@@ -56,7 +60,7 @@ contract Dbanta {
     address public owner; //Owner is also a maintainer
     bool public stopped = false;
     uint256 public bantCount = 0;
-
+    IDbantaNFT public nft;
     struct User {
         uint256 id;
         address ethAddress;
@@ -207,8 +211,11 @@ contract Dbanta {
     event newfollowers(address user, address follower);
     event logRebantCreated(uint256 rebantid, uint256 bantid, address user);
 
-    constructor() {
+    event BantMinted(uint256 bantId, address user);
+
+    constructor(address _nft) {
         owner = msg.sender;
+        nft = IDbantaNFT(_nft);
         registerUser('owner', 'owner', '', '', 'owner');
     }
 
@@ -484,17 +491,6 @@ contract Dbanta {
     }
 
     /// @notice Get list of bants done by a user
-    /// @return bantList Array of bant ids
-    function getUserBants()
-        public
-        view
-        onlyAllowedUser(msg.sender)
-        returns (uint256[] memory bantList)
-    {
-        return userBants[msg.sender];
-    }
-
-    /// @notice Get list of bants done by a user
     /// @param _user User address
     /// @return bantList Array of dweet ids
     function getUserBants(address _user)
@@ -619,6 +615,13 @@ contract Dbanta {
         returns (uint256[] memory list)
     {
         return (bantComments[_id]);
+    }
+
+    function mintBant(uint256 _id) public onlyBantAuthor(_id)
+    {
+        string memory uri = Bants[_id].content;   
+        nft.safeMint(msg.sender, uri);
+        emit BantMinted(_id, msg.sender);
     }
 
     /*
