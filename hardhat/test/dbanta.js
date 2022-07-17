@@ -4,9 +4,11 @@ const { ethers } = require("hardhat");
 
 describe("Dbanta contract", function () {
     async function deployDbantaFixture() {
+        const nftFactory = await ethers.getContractFactory("DbantaNFT");
+        const nft = await nftFactory.deploy();
         const DbantaFactory = await ethers.getContractFactory("Dbanta");
         const [owner, alice, bob] = await ethers.getSigners();
-        const Dbanta = await DbantaFactory.deploy();
+        const Dbanta = await DbantaFactory.deploy(nft.address);
 
         await Dbanta.deployed();
 

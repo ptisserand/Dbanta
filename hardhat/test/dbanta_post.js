@@ -8,10 +8,12 @@ function getRandomInt(max) {
 
 describe("Dbanta post", function () {
     async function aliceIsRegisteredFixture() {
+        const nftFactory = await ethers.getContractFactory("DbantaNFT");
+        const nft = await nftFactory.deploy();
         const DbantaFactory = await ethers.getContractFactory("Dbanta");
         const [owner, alice, bob, carl] = await ethers.getSigners();
-        const Dbanta = await DbantaFactory.deploy();
-
+        const Dbanta = await DbantaFactory.deploy(nft.address);
+        await nft.deployed();
         await Dbanta.deployed();
         const input = {
             username: "alice",
@@ -21,7 +23,10 @@ describe("Dbanta post", function () {
             bio: "American rock singer whose career spans over 54 years"
         };
         await Dbanta.connect(alice).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
-        return { Dbanta, owner, alice, bob, carl };
+        // only dbanta to mint nft
+        const minter_role = await nft.MINTER_ROLE();
+        await nft.grantRole(minter_role, Dbanta.address);
+        return { Dbanta, nft, owner, alice, bob, carl };
     }
 
     async function createPost(Dbanta, user) {
@@ -118,6 +123,20 @@ describe("Dbanta post", function () {
             expect(bant.author).to.equal(0);
         })
 
+        it("User can mint a bant", async function() {
+            const { Dbanta, alice, bob, nft } = await loadFixture(aliceIsRegisteredFixture);
+            let tx = await createPost(Dbanta, alice);
+            expect(tx).to.emit(Dbanta, "logBantCreated");
+            await expect(
+                Dbanta.connect(alice).mintBant(1)
+            ).to.emit(Dbanta, "BantMinted");
+            expect(await nft.balanceOf(alice.address)).to.equal(1);
+            await expect(createPost(Dbanta, alice))
+                .to.emit(Dbanta, "logBantCreated");
+            await expect(
+                Dbanta.connect(bob).mintBant(2)
+            ).to.be.reverted;
+        });
     });
 
 
