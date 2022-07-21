@@ -6,16 +6,20 @@ const sleep = (ms) => {
 
 const get_banta_body = async (url) => {
     let resp = await axios.get(url);
-    console.log(resp);
+    // console.log(resp);
     return resp.data.description;
 }
 
 const format_bant = async (bant) => {
     let content = await get_banta_body(bant.content);
-    return {
+    let ret = {
         body: content,
-        upvotes: bant.likeCount
+        upvotes: bant.likeCount,
     }
+    if (bant.imgHash && bant.imgHash !== "" && bant.imgHash !== "FIX ME" ) {
+        ret.image = bant.imgHash;
+    }
+    return ret;
 }
 
 export class TronContract {
@@ -105,6 +109,6 @@ export class PolygonContract {
 
     async createPost(data) {
         let tx = await this.contract.createBant(data.hashtag, data.content, data.imgHash);
-        return tx;
+        return tx.hash;
     };
 }
