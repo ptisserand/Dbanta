@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import fakeposts from '../data/fakeposts';
+import React, { useEffect, useState } from 'react';
+import { useACtx } from './AuthContext';
+
 
 const PostsContext = React.createContext({});
 
@@ -8,10 +9,21 @@ export const usePCtx = () => {
 };
 const PostsProvider = ({ children }) => {
   const [activePost, setActivePost] = useState(null);
-  const [posts, setPosts] = useState(fakeposts);
+  const [posts, setPosts] = useState([]);
   const [posted, setPosted] = useState(false);
-
+  const [loading, setLoading] = useState(false);
   const [image, setImage] = useState(null);
+
+  const { isAuth, contract } = useACtx();
+
+  const fetchPostsAPI = async () => {
+    if (contract !== undefined) {
+      setLoading(true);
+      const posts = await contract.fetchPosts(isAuth);
+      setPosts(posts);
+      setLoading(false);
+    }
+  }
 
   const dispatchEvent = (actionType, payload) => {
     switch (actionType) {
@@ -38,6 +50,11 @@ const PostsProvider = ({ children }) => {
         return;
     }
   };
+
+
+  useEffect(() => {
+    fetchPostsAPI();
+  }, [isAuth, contract]);
 
   return (
     <PostsContext.Provider
