@@ -1,17 +1,21 @@
-import { useEffect, useState } from 'react';
-import { Box, Button, FormControl, HStack, IconButton, Text } from '@chakra-ui/react';
+import { useEffect, useState, useRef } from 'react';
+import { useToast } from '@chakra-ui/react';
+import { Box, Button, FormControl, HStack, IconButton, Input, Spinner, Text } from '@chakra-ui/react';
 import { FcAddImage, FcVideoCall, FcCheckmark } from 'react-icons/fc';
 import { usePCtx } from '../../context/PostsContext';
 import { useACtx } from '../../context/AuthContext';
 import TextArea from './TextArea';
-import { pinJSONToIPFS, unpinIPFS } from '../../util/pinata';
+import { pinJSONToIPFS, pinFileToIPFS, unpinIPFS } from '../../util/pinata';
 
 function CreateBantBox() {
+  const toast = useToast();
 
   const { dispatchEvent } = usePCtx();
   const { isAuth, contract } = useACtx();
   const [logged, setLogged] = useState(false);
-
+  const [loading, setLoading] = useState(false);
+  const [imageData, setImageData] = useState({url: "", cid: ""});
+  const fileRef = useRef();
 
   const handleSubmit = async (event) => {
     event.preventDefault();
@@ -20,17 +24,26 @@ function CreateBantBox() {
     // FIXME
     metadata.name = "FIX NAME!";
     metadata.description = content;
+    setLoading(true);
     let response = await pinJSONToIPFS(metadata);
     console.log(response);
     if (response.success !== true) {
       console.log("Failed to pin on IPFS");
+      toast({
+        status: 'error',
+        title: 'IPFS upload failed',
+        description: 'Failed to upload post content to IPFS',
+        duration: 3000,
+        isClosable: true,
+      });
+      setLoading(false);
       return;
     }
     // FIXME
     const data = {
       hashtag: "FIX ME",
       content: response.url,
-      imgHash: "FIX ME"
+      imgHash: imageData.url,
     };
     try {
       const tx = await contract.createPost(data);
@@ -39,14 +52,41 @@ function CreateBantBox() {
         body: content
       };
       dispatchEvent("SET_NEW_POST", post);
+      setLoading(false);
+      toast({
+        status: 'success',
+        title: 'Post created!',
+        description: `Transaction id: ${tx}`,
+        duration: 2000,
+        isClosable: true,
+      });
+  
     } catch (error) {
       console.error(error);
       // unpin 
       await unpinIPFS(response.cid);
-      alert(error.message);
+      // remove image also
+      await unpinIPFS(imageData.cid);
+      
+      toast({
+        status: 'error',
+        title: 'Post creation failed',
+        description: `${error.message}`,
+        duration: 3000,
+        isClosable: true,
+      });
+      setLoading(false);
     }
     // dispatchEvent()
   }
+
+  const handleImage = async (e) => {
+      const [file] = e.target.files;
+      //dispatchEvent('SET_NEW_IMAGE', e.target.files[0]);
+      let ret = await pinFileToIPFS(file);
+      console.log(ret);
+      setImageData({url: ret.url, cid: ret.cid});
+  };
 
   useEffect(() => {
     setLogged(isAuth !== false);
@@ -115,8 +155,20 @@ function CreateBantBox() {
           rounded="sm"
           fontSize={'2xl'}
           disabled={!logged}
+          onClick={() => fileRef.current.click()}
+        />
+        <Input
+          ref={fileRef}
+          type="file"
+          accept="image/*"
+          name="image"
+          id="image"
+          onChange={handleImage}
+          size="lg"
+          display="none"
         />
       </HStack>
+      {loading && <Spinner></Spinner>}
     </Box>
   );
 }
