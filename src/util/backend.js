@@ -1,9 +1,21 @@
+import axios from 'axios';
+
 const sleep = (ms) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-const format_bant = (bant) => {
-    return bant;
+const get_banta_body = async (url) => {
+    let resp = await axios.get(url);
+    console.log(resp);
+    return resp.data.description;
+}
+
+const format_bant = async (bant) => {
+    let content = await get_banta_body(bant.content);
+    return {
+        body: content,
+        upvotes: bant.likeCount
+    }
 }
 
 export class TronContract {
@@ -24,18 +36,26 @@ export class TronContract {
 
     async fetchPosts(address) {
         console.info("Fetching posts...");
-        let bants = await this.contract
+        let bantIds = await this.contract
             .getUserBants(address.hex)
             .call();
-        return bants.map(format_bant);
+        let posts = [];
+        for (let id of bantIds) {
+            let bant = await this.fetchPost(id);
+            posts.push(bant);
+        }
+        // console.log(posts);
+        return posts;
     };
 
     async fetchPost(id) {
         let bant = await this.contract
             .getBant(id)
             .call();
-        console.log(bant);
-        return format_bant(bant);
+        // console.log(bant);
+        let res = await format_bant(bant);
+        res.id = id.toNumber();
+        return res;
     };
 
     async createPost(data) {
@@ -67,15 +87,20 @@ export class PolygonContract {
     };
 
     async fetchPosts(address) {
-        console.info("Fetching posts...");
-        let bants = await this.contract.getUserBants(address);
-        return bants.map(format_bant);
+        let bantIds = await this.contract.getUserBants(address);
+        let posts = [];
+        for (let id of bantIds) {
+            let bant = await this.fetchPost(id);
+            posts.push(bant);
+        }
+        return posts;
     };
 
     async fetchPost(id) {
         let bant = await this.contract.getBant(id);
-        console.log(bant);
-        return format_bant(bant);
+        let res = await format_bant(bant);
+        res.id = id.toNumber();
+        return res;
     };
 
     async createPost(data) {
