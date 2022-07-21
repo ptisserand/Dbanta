@@ -11,11 +11,9 @@ export class TronContract {
         this.contract = contract;
     };
     async getUserInfo(address) {
-        console.log("getuserInfo:", address);
         let user = await this.contract
             .getUser(address.hex)
             .call();
-        console.log(user);
         return {
             name: user.name,
             username: user.username,
