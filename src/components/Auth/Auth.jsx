@@ -1,12 +1,18 @@
-import { Button } from '@chakra-ui/react';
+import { Button, Select } from '@chakra-ui/react';
 import { BiLogInCircle, BiLogOutCircle } from 'react-icons/bi';
 
 import React, { useEffect, useState } from 'react';
 import { useACtx } from '../../context/AuthContext';
 
 function Auth() {
-  const { dispatchEvent, isAuth, contract } = useACtx();
+  const { dispatchEvent, isAuth, contract, blockchain } = useACtx();
   const [name, setName] = useState("");
+
+  const updateBlockChain = async (event) => {
+    event.preventDefault();
+    const blockchain = event.target.value;
+    dispatchEvent('SET_BLOCKCHAIN', blockchain);
+  }
 
   useEffect(() => {
     const fetchName = async (contract, isAuth) => {
@@ -16,7 +22,7 @@ function Auth() {
     if ((isAuth !== false) && (contract !== undefined)) {
       fetchName(contract, isAuth).catch(console.error);
     }
-  }, [isAuth, contract]);
+  }, [isAuth, contract, blockchain]);
 
   return (
     <>
@@ -41,6 +47,10 @@ function Auth() {
           </Button>
         </>
       )}
+      <Select onClick={(event) => updateBlockChain(event)}>
+          <option value="evm">Polygon</option>
+          <option value="tron">Tron</option>
+        </Select>
     </>
   );
 }
