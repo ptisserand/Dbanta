@@ -34,6 +34,32 @@ const pinJSONToIPFS = async (JSONBody) => {
     }
 };
 
+const pinFileToIPFS = async (file) => {
+    const url = 'https://api.pinata.cloud/pinning/pinFileToIPFS';
+    try {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('pinataMetadata', '{"keyvalues": {"project": "dbanta"}}');
+        let response = await axios.post(url, formData, {
+            headers: {
+                pinata_api_key: key,
+                pinata_secret_api_key: secret,
+            }
+        })
+        return {
+            success: true,
+            url: "https://gateway.pinata.cloud/ipfs/" + response.data.IpfsHash,
+            cid: response.data.IpfsHash
+        }
+    } catch (error) {
+        console.log(error)
+        return {
+            success: false,
+            message: error.message
+        }
+    }
+}
+
 const unpinIPFS = async (cid) => {
     const url = `https://api.pinata.cloud/pinning/unpin/${cid}`;
     try {
@@ -55,4 +81,4 @@ const unpinIPFS = async (cid) => {
     }
 }
 
-export { pinJSONToIPFS, unpinIPFS };
+export { pinJSONToIPFS, pinFileToIPFS, unpinIPFS };
