@@ -22,6 +22,8 @@ const PostsProvider = ({ children }) => {
       const posts = await contract.fetchPosts(isAuth);
       setPosts(posts);
       setLoading(false);
+    } else {
+      setPosts([]);
     }
   }
 
