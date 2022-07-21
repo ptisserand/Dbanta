@@ -3,7 +3,6 @@ import { BiLogInCircle, BiLogOutCircle } from 'react-icons/bi';
 
 import React, { useEffect, useState } from 'react';
 import { useACtx } from '../../context/AuthContext';
-import { getUserInfo } from '../../util/backend';
 
 function Auth() {
   const { dispatchEvent, isAuth, contract } = useACtx();
@@ -11,7 +10,7 @@ function Auth() {
 
   useEffect(() => {
     const fetchName = async (contract, isAuth) => {
-      const user = await getUserInfo(contract, isAuth);
+      const user = await contract.getUserInfo(isAuth);
       setName(user.name);
     }
     if ((isAuth !== false) && (contract !== undefined)) {

@@ -1,24 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Box, Button, FormControl, HStack, IconButton, Text } from '@chakra-ui/react';
 import { FcAddImage, FcVideoCall, FcCheckmark } from 'react-icons/fc';
+import { usePCtx } from '../../context/PostsContext';
 import { useACtx } from '../../context/AuthContext';
 import TextArea from './TextArea';
 import { pinJSONToIPFS, unpinIPFS } from '../../util/pinata';
-import { createPost } from '../../util/backend';
 
 function CreateBantBox() {
 
+  const { dispatchEvent } = usePCtx();
   const { isAuth, contract } = useACtx();
   const [logged, setLogged] = useState(false);
 
-  
+
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const post = event.target.post.value;
+    const content = event.target.post.value;
     const metadata = {};
     // FIXME
     metadata.name = "FIX NAME!";
-    metadata.description = post;
+    metadata.description = content;
     let response = await pinJSONToIPFS(metadata);
     console.log(response);
     if (response.success !== true) {
@@ -32,10 +33,13 @@ function CreateBantBox() {
       imgHash: "FIX ME"
     };
     try {
-      const tx = await createPost(contract, data);
+      const tx = await contract.createPost(data);
       console.log(tx);
-      dispatchEvent("SET_NEW_POST", )
-    } catch(error) {
+      const post = {
+        body: content
+      };
+      dispatchEvent("SET_NEW_POST", post);
+    } catch (error) {
       console.error(error);
       // unpin 
       await unpinIPFS(response.cid);
@@ -100,8 +104,8 @@ function CreateBantBox() {
               fontSize="sm"
               disabled={!logged}
               type="submit">
-                Post
-              </Button>
+              Post
+            </Button>
           </HStack>
         </Box>
         <IconButton
