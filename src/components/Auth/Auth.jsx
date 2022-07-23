@@ -6,20 +6,20 @@ import { useACtx } from '../../context/AuthContext';
 
 function Auth() {
   const { dispatchEvent, isAuth, contract, blockchain } = useACtx();
-  const [name, setName] = useState("");
+  const [name, setName] = useState('');
 
-  const updateBlockChain = async (event) => {
+  const updateBlockChain = async event => {
     event.preventDefault();
     const blockchain = event.target.value;
     dispatchEvent('SET_BLOCKCHAIN', blockchain);
-  }
+  };
 
   useEffect(() => {
     const fetchName = async (contract, isAuth) => {
       const user = await contract.getUserInfo(isAuth);
       setName(user.name);
-    }
-    if ((isAuth !== false) && (contract !== undefined)) {
+    };
+    if (isAuth !== false && contract !== undefined) {
       fetchName(contract, isAuth).catch(console.error);
     }
   }, [isAuth, contract, blockchain]);
@@ -29,6 +29,8 @@ function Auth() {
       {!isAuth && (
         <Button
           colorScheme="green"
+          px="5"
+          size="sm"
           rightIcon={<BiLogInCircle />}
           onClick={() => dispatchEvent('LOGIN', null)}
         >
@@ -39,6 +41,8 @@ function Auth() {
         <>
           <Button>{name}</Button>
           <Button
+            size="sm"
+            px="6"
             colorScheme="red"
             rightIcon={<BiLogOutCircle />}
             onClick={() => dispatchEvent('LOGOUT', null)}
@@ -47,10 +51,14 @@ function Auth() {
           </Button>
         </>
       )}
-      <Select onClick={(event) => updateBlockChain(event)} defaultValue="tron">
-          <option value="evm">Polygon</option>
-          <option value="tron">Tron</option>
-        </Select>
+      <Select
+        size="sm"
+        onClick={event => updateBlockChain(event)}
+        defaultValue="tron"
+      >
+        <option value="evm">Polygon</option>
+        <option value="tron">Tron</option>
+      </Select>
     </>
   );
 }

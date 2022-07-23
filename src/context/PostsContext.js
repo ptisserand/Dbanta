@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useACtx } from './AuthContext';
 
-
 const PostsContext = React.createContext({});
 
 export const usePCtx = () => {
@@ -25,7 +24,7 @@ const PostsProvider = ({ children }) => {
     } else {
       setPosts([]);
     }
-  }
+  };
 
   const dispatchEvent = (actionType, payload) => {
     switch (actionType) {
@@ -52,7 +51,6 @@ const PostsProvider = ({ children }) => {
         return;
     }
   };
-
 
   useEffect(() => {
     fetchPostsAPI();

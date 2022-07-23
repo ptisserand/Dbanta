@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   Popover,
   PopoverTrigger,
@@ -13,16 +13,62 @@ import {
   ButtonGroup,
   Input,
 } from '@chakra-ui/react';
-import { BiMoney, BiUpvote } from 'react-icons/bi';
+import { BiHeart, BiMoney } from 'react-icons/bi';
 import { FaComment } from 'react-icons/fa';
 import { AiOutlineRetweet } from 'react-icons/ai';
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { BsFillHeartFill } from 'react-icons/bs';
 
 function PostActionsBar({ upvotes, comments, shares, id }) {
-  // const
+  const [liked, setLikedByUser] = useState(false);
+  const [likesCount, setLikedCount] = useState(0);
+
+  const handleLikeClick = () => {
+    if (liked) {
+      setLikedCount(prev => prev - 1);
+      setLikedByUser(false);
+    } else {
+      setLikedCount(prev => prev + 1);
+
+      setLikedByUser(true);
+    }
+  };
+
+  const fetchPostLikesCount = () => {
+    //get post likes
+
+    let value = 10;
+    setLikedCount(value);
+  };
+
+  useEffect(() => {
+    fetchPostLikesCount();
+  }, []);
+
   return (
     <Box>
       <HStack spacing={[3, 5, 8]} pb="4" justifyContent={'space-between'}>
+        <Button
+          size="sm"
+          variant={'flushed'}
+          fontSize={'13px'}
+          fontFamily={'Plus Jakarta Sans'}
+          onClick={handleLikeClick}
+          leftIcon={
+            liked ? (
+              <Box fontSize="xl" color="crimson">
+                <BsFillHeartFill />
+              </Box>
+            ) : (
+              <Box fontSize="xl" color="blue.500">
+                <BiHeart />
+              </Box>
+            )
+          }
+        >
+          {likesCount}
+        </Button>
         <DonatePopover>
           <Button
             size="sm"
@@ -31,27 +77,14 @@ function PostActionsBar({ upvotes, comments, shares, id }) {
             fontFamily={'Plus Jakarta Sans'}
             leftIcon={
               <Box fontSize="xl" color="blue.500">
-                <BiUpvote />
+                <BiMoney />
               </Box>
             }
           >
             {/* Upvote */}
+            90
           </Button>
         </DonatePopover>
-        <Button
-          size="sm"
-          variant={'flushed'}
-          fontSize={'13px'}
-          fontFamily={'Plus Jakarta Sans'}
-          leftIcon={
-            <Box fontSize="xl" color="blue.500">
-              <BiMoney />
-            </Box>
-          }
-        >
-          {/* Upvote */}
-          90
-        </Button>
         {id && (
           <Button
             variant={'flushed'}
@@ -105,38 +138,42 @@ function PostActionsBar({ upvotes, comments, shares, id }) {
 export default PostActionsBar;
 
 function DonatePopover({ children }) {
+  const [tipAmt, setTipAmt] = useState(1);
   return (
     <Popover placement="bottom" closeOnBlur={false}>
       <PopoverTrigger>{children}</PopoverTrigger>
-      <PopoverContent color="white" bg="blue.500">
+      <PopoverContent color="white" bg="blue.800">
         <PopoverHeader
           fontSize="sm"
           pt={4}
           border="0"
           fontFamily="Plus Jakarta Sans"
+          fontWeight={'bold'}
         >
-          You like this, share some Bantokens!
+          Tip :
           <br />
-          <small>quick select :</small>
         </PopoverHeader>
         <PopoverArrow />
         <PopoverCloseButton />
-        <PopoverBody>
-          <ButtonGroup gap="2" color="gray.900">
-            <Button size="sm" rounded="sm">
-              5{' '}
-            </Button>
-            <Button size="sm" rounded="sm">
-              10{' '}
-            </Button>
-            <Button size="sm" rounded="sm">
-              20
-            </Button>
-            <Button size="sm" rounded="sm">
-              50
-            </Button>
-            <Input size="sm" placeholder="Enter amt" bg="white" type="number" />
-          </ButtonGroup>
+        <PopoverBody as={HStack}>
+          <Input
+            size="sm"
+            value={tipAmt}
+            onChange={e => setTipAmt(e.target.value)}
+            placeholder="Enter amt $"
+            type="number"
+            min="1"
+            bg="gray.800"
+          />
+          <Button
+            disabled={tipAmt < 1}
+            px="40px"
+            rounded="sm"
+            size="sm"
+            colorScheme={'teal'}
+          >
+            Tip {tipAmt}
+          </Button>
         </PopoverBody>
       </PopoverContent>
     </Popover>
