@@ -85,6 +85,7 @@ class EVMProvider {
 
 };
 
+
 class TronProvider {
   constructor(setContract, setAuth, toast) {
     this.setContract = setContract;
@@ -98,21 +99,36 @@ class TronProvider {
     this.setAuth(account);
   };
 
+  isShasta() {
+    return (-1 !== this.tronWeb.fullNode.host.indexOf('shasta'));
+  }
+
   async login() {
     try {
-      if (window && window.tronLink) {
+      if (window && window.tronLink && window.tronWeb) {
         const res = await window.tronLink.request({ method: 'tron_requestAccounts' });
         this.tronWeb = window.tronWeb;
-        let addr = this.tronWeb.defaultAddress;
-        await this.updateState(addr);
         if (res.code === 200) {
-          this.toast({
-            status: 'success',
-            title: 'Connected to wallet',
-            description: `Address: ${addr.base58}`,
-            duration: 3000,
-            isClosable: true,
-          });
+          // check connected network?
+          if (true === this.isShasta()) {
+            let addr = this.tronWeb.defaultAddress;
+            await this.updateState(addr);
+            this.toast({
+              status: 'success',
+              title: 'Connected to wallet',
+              description: `Address: ${addr.base58}`,
+              duration: 3000,
+              isClosable: true,
+            });
+          } else {
+            this.toast({
+              status: 'error',
+              title: 'Please connect to shasta',
+              duration: 9000,
+              isClosable: true,
+            });
+    
+          }
         } else {
           this.toast({
             status: 'error',

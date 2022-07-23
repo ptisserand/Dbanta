@@ -47,7 +47,7 @@ function Auth() {
           </Button>
         </>
       )}
-      <Select onClick={(event) => updateBlockChain(event)}>
+      <Select onClick={(event) => updateBlockChain(event)} defaultValue="tron">
           <option value="evm">Polygon</option>
           <option value="tron">Tron</option>
         </Select>
