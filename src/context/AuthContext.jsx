@@ -168,7 +168,7 @@ const AuthProvider = ({ children }) => {
 
   const login = async () => {
     if (null === provider.current) {
-
+      await updateProvider("tron");
     }
     await provider.current.login();
   }
