@@ -5,7 +5,8 @@ You need to create file named `.env` with the following contents:
 ##### React configuration
 REACT_APP_PINATA_KEY="Pinata Key"
 REACT_APP_PINATA_SECRET="Pinata secret"
-REACT_APP_CONTRACT_ADDRESS="0x contract address on chain"
+REACT_APP_MUMBAI_CONTRACT_ADDRESS="0x Mumbai contract address"
+REACT_APP_TRON_CONTRACT_ADDRESS="T Tron contract address"
 
 ######
 # Hardhat configuration
