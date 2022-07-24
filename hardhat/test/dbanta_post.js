@@ -110,7 +110,7 @@ describe("Dbanta post", function () {
             ).to.be.reverted;
         });
 
-        it("User can delete a bant", async function() {
+        it("User can delete a bant", async function () {
             const { Dbanta, alice, bob } = await loadFixture(aliceIsRegisteredFixture);
             let tx = await createPost(Dbanta, alice);
             expect(tx).to.emit(Dbanta, "logBantCreated");
@@ -123,7 +123,7 @@ describe("Dbanta post", function () {
             expect(bant.author).to.equal(0);
         })
 
-        it("User can mint a bant", async function() {
+        it("User can mint a bant", async function () {
             const { Dbanta, alice, bob, nft } = await loadFixture(aliceIsRegisteredFixture);
             let tx = await createPost(Dbanta, alice);
             expect(tx).to.emit(Dbanta, "logBantCreated");
@@ -137,6 +137,45 @@ describe("Dbanta post", function () {
                 Dbanta.connect(bob).mintBant(2)
             ).to.be.reverted;
         });
+
+        it("User can like a bant", async function () {
+            const { Dbanta, alice, bob } = await loadFixture(aliceIsRegisteredFixture);
+            let tx = await createPost(Dbanta, alice);
+            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(await Dbanta.bantLikes(1)).to.be.equal(0);
+            expect(await Dbanta.userLikesBant(1, bob.address)).to.be.equal(false);
+            await expect(
+                Dbanta.connect(bob).likeBant(1)
+            ).to.emit(Dbanta, "BantLiked");
+            expect(await Dbanta.bantLikes(1)).to.be.equal(1);
+            expect(await Dbanta.userLikesBant(1, bob.address)).to.be.equal(true);
+            await expect(
+                Dbanta.connect(bob).likeBant(1)
+            ).to.be.reverted;
+            expect(await Dbanta.bantLikes(1)).to.be.equal(1);
+        });
+
+        it("User can unlike a bant", async function () {
+            const { Dbanta, alice, bob } = await loadFixture(aliceIsRegisteredFixture);
+            let tx = await createPost(Dbanta, alice);
+            expect(tx).to.emit(Dbanta, "logBantCreated");
+            await expect(
+                Dbanta.connect(bob).unlikeBant(1)
+            ).to.be.reverted;
+            expect(await Dbanta.bantLikes(1)).to.be.equal(0);
+            expect(await Dbanta.userLikesBant(1, bob.address)).to.be.equal(false);
+            await expect(
+                Dbanta.connect(bob).likeBant(1)
+            ).to.emit(Dbanta, "BantLiked");
+            expect(await Dbanta.bantLikes(1)).to.be.equal(1);
+            expect(await Dbanta.userLikesBant(1, bob.address)).to.be.equal(true);
+            await expect(
+                Dbanta.connect(bob).unlikeBant(1)
+            ).to.emit(Dbanta, "BantUnliked");
+            expect(await Dbanta.bantLikes(1)).to.be.equal(0);
+            expect(await Dbanta.userLikesBant(1, bob.address)).to.be.equal(false);
+        });
+
     });
 
 
