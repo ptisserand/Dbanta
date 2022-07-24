@@ -93,6 +93,7 @@ function SinglePostView() {
               comments={post.comments}
               shares={post.shares}
               upvotes={post.upvotes}
+              id={post.id}
             />
           </Box>
           <HStack alignItems={'flex-start'}>
