@@ -2,7 +2,8 @@
 pragma solidity >=0.7.0 <0.8.9;
 
 interface IDbantaNFT {
-    function tokenURI(uint256 tokenId) external view returns(string memory);
+    function tokenURI(uint256 tokenId) external view returns (string memory);
+
     function safeMint(address to, string memory uri) external;
 }
 
@@ -208,6 +209,9 @@ contract Dbanta {
         uint256 bantid,
         uint256 tipVote
     );
+    event BantLiked(uint256 bantId, address user);
+    event BantUnliked(uint256 bantId, address user);
+
     event newfollowers(address user, address follower);
     event logRebantCreated(uint256 rebantid, uint256 bantid, address user);
 
@@ -290,7 +294,12 @@ contract Dbanta {
         totalRebants = totalRebants.add(1);
         uint256 id = totalRebants;
 
-        Rebant memory rebant = Rebant(_bant.bantId, id, block.timestamp, msg.sender);
+        Rebant memory rebant = Rebant(
+            _bant.bantId,
+            id,
+            block.timestamp,
+            msg.sender
+        );
         rebants[id] = rebant;
 
         userRebants[msg.sender].push(rebant);
@@ -480,6 +489,7 @@ contract Dbanta {
 
     /// @notice Like a bants
     /// @param _id Id of bant to be likeBant
+    /// Emit BantLiked
     function likeBant(uint256 _id)
         public
         onlyAllowedUser(msg.sender)
@@ -488,6 +498,36 @@ contract Dbanta {
         require(!bantLikers[_id][msg.sender]);
         Bants[_id].likeCount = Bants[_id].likeCount.add(1);
         bantLikers[_id][msg.sender] = true;
+        emit BantLiked(_id, msg.sender);
+    }
+
+    /// @notice Unlike a bants
+    /// @param _id ID of bant to be unlike
+    /// Emit BantUnliked
+    function unlikeBant(uint256 _id)
+        public
+        onlyAllowedUser(msg.sender)
+        onlyActiveBant(_id)
+    {
+        require(bantLikers[_id][msg.sender]);
+        Bants[_id].likeCount = Bants[_id].likeCount.sub(1);
+        bantLikers[_id][msg.sender] = false;
+        emit BantUnliked(_id, msg.sender);
+    }
+
+    /// @notice Is user like a bant?
+    /// @param _id: Bant id
+    /// @param _user: User address
+    function userLikesBant(uint256 _id, address _user)
+        public
+        view
+        returns (bool)
+    {
+        return bantLikers[_id][_user];
+    }
+
+    function bantLikes(uint256 _id) public view returns (uint256) {
+        return Bants[_id].likeCount;
     }
 
     /// @notice Get list of bants done by a user
@@ -617,9 +657,8 @@ contract Dbanta {
         return (bantComments[_id]);
     }
 
-    function mintBant(uint256 _id) public onlyBantAuthor(_id)
-    {
-        string memory uri = Bants[_id].content;   
+    function mintBant(uint256 _id) public onlyBantAuthor(_id) {
+        string memory uri = Bants[_id].content;
         nft.safeMint(msg.sender, uri);
         emit BantMinted(_id, msg.sender);
     }
