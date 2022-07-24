@@ -19,32 +19,45 @@ import { AiOutlineRetweet } from 'react-icons/ai';
 import { Link } from 'react-router-dom';
 import { useState } from 'react';
 import { BsFillHeartFill } from 'react-icons/bs';
+import { useACtx } from '../../context/AuthContext';
 
 function PostActionsBar({ upvotes, comments, shares, id }) {
   const [liked, setLikedByUser] = useState(false);
   const [likesCount, setLikedCount] = useState(0);
+  const { contract } = useACtx();
 
-  const handleLikeClick = () => {
+  const handleLikeClick = async () => {
+    console.log("Post ID:", id);
     if (liked) {
+      // await contract.unlikePost(id);
       setLikedCount(prev => prev - 1);
       setLikedByUser(false);
     } else {
+      await contract.likePost(id);
       setLikedCount(prev => prev + 1);
 
       setLikedByUser(true);
     }
   };
 
-  const fetchPostLikesCount = () => {
+  const fetchPostLikesCount = async () => {
     //get post likes
-
-    let value = 10;
+    let value = 0;
+    if (contract !== undefined) {
+      value = await contract.getLikes(id);
+    }
     setLikedCount(value);
+  };
+
+  const fetchUserLikesPost = async () => {
+    let liked = await contract.userLikesPost(id)
+    setLikedByUser(liked);
   };
 
   useEffect(() => {
     fetchPostLikesCount();
-  }, []);
+    // fetchUserLikesPost();
+  }, [contract]);
 
   return (
     <Box>
