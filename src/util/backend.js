@@ -14,9 +14,9 @@ const format_bant = async (bant) => {
     let content = await get_banta_body(bant.content);
     let ret = {
         body: content,
-        upvotes: bant.likeCount,
+        upvotes: bant.likeCount.toNumber(),
     }
-    if (bant.imgHash && bant.imgHash !== "" && bant.imgHash !== "FIX ME" ) {
+    if (bant.imgHash && bant.imgHash !== "" && bant.imgHash !== "FIX ME") {
         ret.image = bant.imgHash;
     }
     return ret;
@@ -74,6 +74,26 @@ export class TronContract {
             return "";
         }
     };
+
+    async likePost(id) {
+        try {
+            let tx = await this.contract
+                .likeBant(id)
+                .send();
+            console.log(tx);
+            return true;
+        } catch (err) {
+            console.error(err);
+            return false;
+        }
+    }
+
+    async getLikes(id) {
+        let bant = await this.contract
+            .getBant(id)
+            .call();
+        return bant.likeCount.toNumber();
+    }
 }
 
 export class PolygonContract {
@@ -111,4 +131,20 @@ export class PolygonContract {
         let tx = await this.contract.createBant(data.hashtag, data.content, data.imgHash);
         return tx.hash;
     };
+
+    async likePost(id) {
+        try {
+            let tx = await this.contract.likeBant(id);
+            console.log(tx);
+            return true;
+        } catch (err) {
+            console.error(err);
+            return false;
+        }
+    }
+
+    async getLikes(id) {
+        let bant = await this.contract.getBant(id);
+        return bant.likeCount.toNumber();
+    }
 }
