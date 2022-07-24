@@ -88,11 +88,32 @@ export class TronContract {
         }
     }
 
-    async getLikes(id) {
-        let bant = await this.contract
-            .getBant(id)
+    async unlikePost(id) {
+        try {
+            let tx = await this.contract
+                .unlikeBant(id)
+                .send();
+            console.log(tx);
+            return true;
+        } catch (err) {
+            console.error(err);
+            return false;
+        }
+    }
+
+    async userLikesPost(id, address) {
+        let isLiked = await this.contract
+            .userLikesBant(id, address.hex)
             .call();
-        return bant.likeCount.toNumber();
+        return isLiked;
+    }
+
+    
+    async getLikes(id) {
+        let likes = await this.contract
+            .bantLikes(id)
+            .call();
+        return likes.toNumber();
     }
 }
 
@@ -143,8 +164,23 @@ export class PolygonContract {
         }
     }
 
+    async unlikePost(id) {
+        try {
+            let tx = await this.contract.unlikeBant(id);
+            console.log(tx);
+            return true;
+        } catch (err) {
+            console.error(err);
+            return false;
+        }
+    }
+    async userLikesPost(id, address) {
+        let isLiked = await this.contract.userLikesBant(id, address);
+        return isLiked;
+    }
+
     async getLikes(id) {
-        let bant = await this.contract.getBant(id);
-        return bant.likeCount.toNumber();
+        let likes = await this.contract.bantLikes(id);
+        return likes.toNumber();
     }
 }
