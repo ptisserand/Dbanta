@@ -220,7 +220,7 @@ contract Dbanta {
     constructor(address _nft) {
         owner = msg.sender;
         nft = IDbantaNFT(_nft);
-        registerUser('owner', 'owner', '', '', 'owner');
+        register('owner', 'owner', '', '', 'owner');
     }
 
     fallback() external {
@@ -236,14 +236,40 @@ contract Dbanta {
         return !usernames[_username];
     }
 
+    function _registerUser(
+        address _user,
+        string memory _username,
+        string memory _name,
+        string memory _imgHash,
+        string memory _coverHash,
+        string memory _bio
+    ) private {
+        usernames[_username] = true;
+        totalUsers = totalUsers.add(1);
+        uint256 id = totalUsers;
+        address[] memory follow;
+        users[_user] = User(
+            id,
+            _user,
+            follow,
+            _username,
+            _name,
+            _imgHash,
+            _coverHash,
+            _bio,
+            accountStatus.Active
+        );
+        userAddressFromUsername[_username] = _user;
+        emit logRegisterUser(_user, totalUsers);
+    }
+
     /// @notice Register a new user
     /// @param  _username username of username
     /// @param _name name of person
     /// @param _imgHash Ipfs Hash of users Profile Image
     /// @param _coverHash Ipfs Hash of user cover Image
     /// @param _bio Biography of user
-
-    function registerUser(
+    function register(
         string memory _username,
         string memory _name,
         string memory _imgHash,
@@ -255,23 +281,24 @@ contract Dbanta {
         checkUserNotExists(msg.sender)
         usernameTaken(_username)
     {
-        usernames[_username] = true;
-        totalUsers = totalUsers.add(1);
-        uint256 id = totalUsers;
-        address[] memory follow;
-        users[msg.sender] = User(
-            id,
-            msg.sender,
-            follow,
-            _username,
-            _name,
-            _imgHash,
-            _coverHash,
-            _bio,
-            accountStatus.Active
-        );
-        userAddressFromUsername[_username] = msg.sender;
-        emit logRegisterUser(msg.sender, totalUsers);
+        _registerUser(msg.sender, _username, _name, _imgHash, _coverHash, _bio);
+    }
+
+    function registerUser(
+        address _user,
+        string memory _username,
+        string memory _name,
+        string memory _imgHash,
+        string memory _coverHash,
+        string memory _bio
+    )
+        public
+        stopInEmergency
+        checkUserNotExists(_user)
+        usernameTaken(_username)
+        onlyOwner
+    {
+        _registerUser(_user, _username, _name, _imgHash, _coverHash, _bio);
     }
 
     function followusers(address _person) public {
