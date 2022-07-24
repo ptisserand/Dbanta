@@ -24,18 +24,17 @@ import { useACtx } from '../../context/AuthContext';
 function PostActionsBar({ upvotes, comments, shares, id }) {
   const [liked, setLikedByUser] = useState(false);
   const [likesCount, setLikedCount] = useState(0);
-  const { contract } = useACtx();
+  const { isAuth, contract } = useACtx();
 
   const handleLikeClick = async () => {
     console.log("Post ID:", id);
     if (liked) {
-      // await contract.unlikePost(id);
+      await contract.unlikePost(id);
       setLikedCount(prev => prev - 1);
       setLikedByUser(false);
     } else {
       await contract.likePost(id);
       setLikedCount(prev => prev + 1);
-
       setLikedByUser(true);
     }
   };
@@ -50,13 +49,13 @@ function PostActionsBar({ upvotes, comments, shares, id }) {
   };
 
   const fetchUserLikesPost = async () => {
-    let liked = await contract.userLikesPost(id)
+    let liked = await contract.userLikesPost(id, isAuth);
     setLikedByUser(liked);
   };
 
   useEffect(() => {
     fetchPostLikesCount();
-    // fetchUserLikesPost();
+    fetchUserLikesPost();
   }, [contract]);
 
   return (
