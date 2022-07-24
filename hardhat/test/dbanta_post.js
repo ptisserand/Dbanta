@@ -22,7 +22,7 @@ describe("Dbanta post", function () {
             coverhash: "cover hash",
             bio: "American rock singer whose career spans over 54 years"
         };
-        await Dbanta.connect(alice).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
+        await Dbanta.connect(alice).register(input.username, input.name, input.imghash, input.coverhash, input.bio);
         // only dbanta to mint nft
         const minter_role = await nft.MINTER_ROLE();
         await nft.grantRole(minter_role, Dbanta.address);
@@ -40,8 +40,8 @@ describe("Dbanta post", function () {
         return tx;
     }
 
-    async function registerUser(Dbanta, user, input) {
-        const tx = await Dbanta.connect(user).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
+    async function register(Dbanta, user, input) {
+        const tx = await Dbanta.connect(user).register(input.username, input.name, input.imghash, input.coverhash, input.bio);
         return tx;
     }
 

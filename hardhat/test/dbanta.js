@@ -23,7 +23,7 @@ describe("Dbanta contract", function () {
             coverhash: "cover hash",
             bio: "American rock singer whose career spans over 54 years"
         };
-        await Dbanta.connect(alice).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
+        await Dbanta.connect(alice).register(input.username, input.name, input.imghash, input.coverhash, input.bio);
     };
 
 
@@ -62,8 +62,8 @@ describe("Dbanta contract", function () {
             expect(await Dbanta.usernameAvailable("alice")).to.equal(true);
         });
 
-        it("'Alice' username is not available after 'alice' is registered", async function() {
-            const { Dbanta, alice} = await loadFixture(deployDbantaFixture);
+        it("'Alice' username is not available after 'alice' is registered", async function () {
+            const { Dbanta, alice } = await loadFixture(deployDbantaFixture);
             await registeringAlice(Dbanta, alice);
             expect(await Dbanta.usernameAvailable("alice")).to.equal(false);
         });
@@ -77,7 +77,7 @@ describe("Dbanta contract", function () {
                 coverhash: "cover hash",
                 bio: "American rock singer whose career spans over 54 years"
             };
-            await Dbanta.connect(alice).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio);
+            await Dbanta.connect(alice).register(input.username, input.name, input.imghash, input.coverhash, input.bio);
             const userData = await Dbanta.getUser(alice.address);
             expect(userData.username).to.equal(input.username);
             expect(userData.name).to.equal(input.name);
@@ -85,11 +85,45 @@ describe("Dbanta contract", function () {
             expect(userData.coverhash).to.equal(input.coverhash);
             expect(userData.bio).to.equal(input.bio);
             const status = await Dbanta.userStatus(alice.address);
-            console.log(status);
+        });
+
+        it("Only owner can register an user", async function () {
+            const { Dbanta, owner, alice, bob } = await loadFixture(deployDbantaFixture);
+            const input = {
+                username: "alice",
+                name: "Alice Cooper",
+                imghash: "img hash",
+                coverhash: "cover hash",
+                bio: "American rock singer whose career spans over 54 years"
+            };
+            await expect(
+                Dbanta.connect(bob).registerUser(
+                    alice.address,
+                    input.username,
+                    input.name,
+                    input.imghash,
+                    input.coverhash,
+                    input.bio)
+            ).to.be.reverted;
+            await Dbanta.connect(owner).registerUser(
+                alice.address,
+                input.username,
+                input.name,
+                input.imghash,
+                input.coverhash,
+                input.bio
+            );
+            const userData = await Dbanta.getUser(alice.address);
+            expect(userData.username).to.equal(input.username);
+            expect(userData.name).to.equal(input.name);
+            expect(userData.imghash).to.equal(input.imghash);
+            expect(userData.coverhash).to.equal(input.coverhash);
+            expect(userData.bio).to.equal(input.bio);
+            const status = await Dbanta.userStatus(alice.address);
         });
 
         it("User can only register once", async function () {
-            const { Dbanta, alice} = await loadFixture(deployDbantaFixture);
+            const { Dbanta, alice } = await loadFixture(deployDbantaFixture);
             await registeringAlice(Dbanta, alice);
             const input = {
                 username: "carl",
@@ -100,13 +134,13 @@ describe("Dbanta contract", function () {
             };
 
             await expect(
-                Dbanta.connect(alice).registerUser(input.username, input.name, input.imgHash, input.coverHash, input.bio)
+                Dbanta.connect(alice).register(input.username, input.name, input.imgHash, input.coverHash, input.bio)
             ).to.be.reverted;
 
         });
 
         it("Username can only be registered once", async function () {
-            const { Dbanta, alice, bob} = await loadFixture(deployDbantaFixture);
+            const { Dbanta, alice, bob } = await loadFixture(deployDbantaFixture);
             await registeringAlice(Dbanta, alice);
             const input = {
                 username: "alice",
@@ -116,7 +150,7 @@ describe("Dbanta contract", function () {
                 bio: "American rock singer whose career spans over 54 years"
             };
             await expect(
-                Dbanta.connect(bob).registerUser(input.username, input.name, input.imghash, input.coverhash, input.bio)
+                Dbanta.connect(bob).register(input.username, input.name, input.imghash, input.coverhash, input.bio)
             ).to.be.reverted;
         });
 
@@ -131,7 +165,7 @@ describe("Dbanta contract", function () {
             };
 
             await expect(
-                Dbanta.connect(bob).registerUser(input.username, input.name, input.imgHash, input.coverHash, input.bio)
+                Dbanta.connect(bob).register(input.username, input.name, input.imgHash, input.coverHash, input.bio)
             ).to.emit(Dbanta, "logRegisterUser");
 
         });
