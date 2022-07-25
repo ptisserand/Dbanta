@@ -1,3 +1,9 @@
+## Deployed contract
+
+- Mumbai: [0x9df98c59F6256AB1948086Cf927Ff08635f2412a](https://mumbai.polygonscan.com/address/0x9df98c59f6256ab1948086cf927ff08635f2412a)
+- Shasta: [TTfyqcThBeGaTzhAZAcdhYfAeV8e9Mnm63](https://shasta.tronscan.org/#/contract/TTfyqcThBeGaTzhAZAcdhYfAeV8e9Mnm63/code)
+  
+  
 ## Environment setup
 
 You need to create file named `.env` with the following contents:
