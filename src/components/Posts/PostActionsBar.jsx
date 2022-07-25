@@ -27,15 +27,20 @@ function PostActionsBar({ upvotes, comments, shares, id }) {
   const { isAuth, contract } = useACtx();
 
   const handleLikeClick = async () => {
+    let success;
     console.log("Post ID:", id);
     if (liked) {
-      await contract.unlikePost(id);
-      setLikedCount(prev => prev - 1);
-      setLikedByUser(false);
+      success = await contract.unlikePost(id);
+      if (true === success) {
+        setLikedCount(prev => prev - 1);
+        setLikedByUser(false);
+      }
     } else {
-      await contract.likePost(id);
-      setLikedCount(prev => prev + 1);
-      setLikedByUser(true);
+      success = await contract.likePost(id);
+      if (true === success) {
+        setLikedCount(prev => prev + 1);
+        setLikedByUser(true);
+      }
     }
   };
 
