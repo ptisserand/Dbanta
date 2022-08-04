@@ -54,14 +54,14 @@ describe("Dbanta post", function () {
                 imgHash: "my image hash"
             }
             const tx = await Dbanta.connect(alice).createBant(input.hashtag, input.content, input.imgHash);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             expect(await Dbanta.connect(alice).getTotalUserBants()).to.equal(1);
         });
 
         it("Bant can be queried by id by author", async function () {
             const { Dbanta, alice } = await loadFixture(aliceIsRegisteredFixture);
             const tx = await createPost(Dbanta, alice);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             let bant = await Dbanta.connect(alice).getBant(1);
             expect(bant.author).to.equal(alice.address);
         });
@@ -69,7 +69,7 @@ describe("Dbanta post", function () {
         it("Bant can be queried by id by user", async function () {
             const { Dbanta, alice, bob } = await loadFixture(aliceIsRegisteredFixture);
             const tx = await createPost(Dbanta, alice);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             let bant = await Dbanta.connect(bob).getBant(1);
             expect(bant.author).to.equal(alice.address);
         });
@@ -83,7 +83,7 @@ describe("Dbanta post", function () {
                 imgHash: `new image hash-${random_num}`
             }
             let tx = await createPost(Dbanta, alice);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             let old_bant = await Dbanta.connect(bob).getBant(1);
             tx = await Dbanta.connect(alice).editBant(1, input.hashtag, input.content, input.imgHash);
             let bant = await Dbanta.connect(bob).getBant(1);
@@ -104,7 +104,7 @@ describe("Dbanta post", function () {
                 imgHash: `new image hash-${random_num}`
             }
             let tx = await createPost(Dbanta, alice);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             await expect(
                 Dbanta.connect(bob).editBant(1, input.hashtag, input.content, input.imgHash)
             ).to.be.reverted;
@@ -113,7 +113,7 @@ describe("Dbanta post", function () {
         it("User can delete a bant", async function () {
             const { Dbanta, alice, bob } = await loadFixture(aliceIsRegisteredFixture);
             let tx = await createPost(Dbanta, alice);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             await expect(
                 Dbanta.connect(bob).deleteBant(1)
             ).to.be.reverted;
@@ -126,13 +126,13 @@ describe("Dbanta post", function () {
         it("User can mint a bant", async function () {
             const { Dbanta, alice, bob, nft } = await loadFixture(aliceIsRegisteredFixture);
             let tx = await createPost(Dbanta, alice);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             await expect(
                 Dbanta.connect(alice).mintBant(1)
             ).to.emit(Dbanta, "BantMinted");
             expect(await nft.balanceOf(alice.address)).to.equal(1);
             await expect(createPost(Dbanta, alice))
-                .to.emit(Dbanta, "logBantCreated");
+                .to.emit(Dbanta, "BantCreated");
             await expect(
                 Dbanta.connect(bob).mintBant(2)
             ).to.be.reverted;
@@ -141,7 +141,7 @@ describe("Dbanta post", function () {
         it("User can like a bant", async function () {
             const { Dbanta, alice, bob } = await loadFixture(aliceIsRegisteredFixture);
             let tx = await createPost(Dbanta, alice);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             expect(await Dbanta.bantLikes(1)).to.be.equal(0);
             expect(await Dbanta.userLikesBant(1, bob.address)).to.be.equal(false);
             await expect(
@@ -158,7 +158,7 @@ describe("Dbanta post", function () {
         it("User can unlike a bant", async function () {
             const { Dbanta, alice, bob } = await loadFixture(aliceIsRegisteredFixture);
             let tx = await createPost(Dbanta, alice);
-            expect(tx).to.emit(Dbanta, "logBantCreated");
+            expect(tx).to.emit(Dbanta, "BantCreated");
             await expect(
                 Dbanta.connect(bob).unlikeBant(1)
             ).to.be.reverted;

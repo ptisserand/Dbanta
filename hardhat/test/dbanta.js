@@ -166,7 +166,7 @@ describe("Dbanta contract", function () {
 
             await expect(
                 Dbanta.connect(bob).register(input.username, input.name, input.imgHash, input.coverHash, input.bio)
-            ).to.emit(Dbanta, "logRegisterUser");
+            ).to.emit(Dbanta, "UserRegistered");
 
         });
     });
