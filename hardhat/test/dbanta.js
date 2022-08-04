@@ -167,8 +167,15 @@ describe("Dbanta contract", function () {
             await expect(
                 Dbanta.connect(bob).register(input.username, input.name, input.imgHash, input.coverHash, input.bio)
             ).to.emit(Dbanta, "UserRegistered");
-
         });
+
+        it("User can be queried by id", async function () {
+            const { Dbanta, alice } = await loadFixture(deployDbantaFixture);
+            await registeringAlice(Dbanta, alice);
+            expect(await Dbanta.usernameAvailable("alice")).to.equal(false);
+            let user = await Dbanta.getUserById(0);
+            console.log(user);
+        })
     });
 
 });
