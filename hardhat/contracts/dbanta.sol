@@ -126,6 +126,8 @@ contract Dbanta {
     // enum BantStatus{NP,Active, Banned, Deleted}
 
     mapping(address => User) private users; //mapping to get user details from user address
+    mapping(uint256 => address) private usersById; // mapping to get user details by id
+
     mapping(string => address) private userAddressFromUsername; //to get user address from username
     // mapping(address=>bool) private registeredUser; //mapping to get user details from user address
     mapping(string => bool) private usernames; //To check which username is taken taken=>true, not taken=>false
@@ -192,18 +194,18 @@ contract Dbanta {
         _;
     }
 
-    event logRegisterUser(address user, uint256 id);
-    event logUserBanned(address user, uint256 id);
-    event logBantCreated(
+    event UserRegistered(address user, uint256 id);
+    event UserBanned(address user, uint256 id);
+    event BantCreated(
         address payable author,
         uint256 userid,
         uint256 bantid,
         string hashtag,
         uint256 tipVote
     );
-    event logBantDeleted(uint256 id, string hashtag);
-    event logBantEdited(uint256 id);
-    event bantVoted(
+    event BantDeleted(uint256 id, string hashtag);
+    event BantEdited(uint256 id);
+    event BantVoted(
         address payable author,
         uint256 userid,
         uint256 bantid,
@@ -212,7 +214,7 @@ contract Dbanta {
     event BantLiked(uint256 bantId, address user);
     event BantUnliked(uint256 bantId, address user);
 
-    event newfollowers(address user, address follower);
+    event NewFollowers(address user, address follower);
     event logRebantCreated(uint256 rebantid, uint256 bantid, address user);
 
     event BantMinted(uint256 bantId, address user);
@@ -259,8 +261,9 @@ contract Dbanta {
             _bio,
             accountStatus.Active
         );
+        usersById[id] = _user;
         userAddressFromUsername[_username] = _user;
-        emit logRegisterUser(_user, totalUsers);
+        emit UserRegistered(_user, totalUsers);
     }
 
     /// @notice Register a new user
@@ -304,7 +307,7 @@ contract Dbanta {
     function followusers(address _person) public {
         User storage _user = users[_person];
         _user.followers.push(msg.sender);
-        emit newfollowers(_person, msg.sender);
+        emit NewFollowers(_person, msg.sender);
     }
 
     function rebantusersbant(uint256 _id)
@@ -360,6 +363,28 @@ contract Dbanta {
         return (userBants[msg.sender].length);
     }
 
+    function _getUser(address _user)
+        internal
+        view
+        returns (
+            uint256 id,
+            string memory username,
+            string memory name,
+            string memory imgHash,
+            string memory coverHash,
+            string memory bio
+        )
+    {
+        return (
+            users[_user].id,
+            users[_user].username,
+            users[_user].name,
+            users[_user].profileImgHash,
+            users[_user].profileCoverImgHash,
+            users[_user].bio
+        );
+    }
+
     /// @notice Get user details
     /// @param _user address of user
     /// @return id Id of user
@@ -380,14 +405,22 @@ contract Dbanta {
             string memory bio
         )
     {
-        return (
-            users[_user].id,
-            users[_user].username,
-            users[_user].name,
-            users[_user].profileImgHash,
-            users[_user].profileCoverImgHash,
-            users[_user].bio
-        );
+        return _getUser(_user);
+    }
+
+    function getUserById(uint256 _id)
+        public
+        view
+        returns (
+            uint256 id,
+            string memory username,
+            string memory name,
+            string memory imgHash,
+            string memory coverHash,
+            string memory bio
+        )
+    {
+        return _getUser(usersById[_id]);
     }
 
     function createBant(
@@ -413,7 +446,7 @@ contract Dbanta {
             cdStatus.Active
         );
         userBants[msg.sender].push(totalBants);
-        emit logBantCreated(
+        emit BantCreated(
             payable(msg.sender),
             users[msg.sender].id,
             totalBants,
@@ -438,7 +471,7 @@ contract Dbanta {
         Bants[_id] = _bant;
         // Trigger an event
         //address payable author, uint256 userid, uint256 bantid, uint tipVote
-        emit bantVoted(_author, _bant.bantId, _user.id, _bant.tipVote);
+        emit BantVoted(_author, _bant.bantId, _user.id, _bant.tipVote);
     }
 
     /// @notice Edit a bant
@@ -461,7 +494,7 @@ contract Dbanta {
         Bants[_id].hashtag = _hashtag;
         Bants[_id].content = _content;
         Bants[_id].imgHash = _imghash;
-        emit logBantEdited(_id);
+        emit BantEdited(_id);
     }
 
     /// @notice Delete a bant
@@ -473,7 +506,7 @@ contract Dbanta {
         stopInEmergency
         onlyBantAuthor(_id)
     {
-        emit logBantDeleted(_id, Bants[_id].hashtag);
+        emit BantDeleted(_id, Bants[_id].hashtag);
         delete Bants[_id];
         Bants[_id].status = cdStatus.Deleted;
         for (uint256 i = 0; i < bantComments[_id].length; i++) {
