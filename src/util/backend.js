@@ -4,6 +4,44 @@ const sleep = (ms) => {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/*
+    struct User {
+        uint256 id;
+        address ethAddress;
+        address[] followers;
+        string username;
+        string name;
+        string profileImgHash;
+        string profileCoverImgHash;
+        string bio;
+        accountStatus status; // Account Banned or Not
+    }
+
+    struct Bant {
+        uint256 bantId;
+        address payable author;
+        string hashtag;
+        string content;
+        string imgHash;
+        uint256 timestamp;
+        uint256 likeCount;
+        uint256 rebantCount;
+        uint256 reportCount;
+        uint256 tipVote;
+        cdStatus status; // Bant Active-Deleted-Banned
+    }
+    
+    struct Comment {
+        uint256 commentId;
+        address payable author;
+        uint256 bantId;
+        string content;
+        uint256 likeCount;
+        uint256 timestamp;
+        cdStatus status;
+    }
+
+*/
 const get_banta_body = async (url) => {
     let resp = await axios.get(url);
     // console.log(resp);
@@ -108,12 +146,19 @@ export class TronContract {
         return isLiked;
     }
 
-    
+
     async getLikes(id) {
         let likes = await this.contract
             .bantLikes(id)
             .call();
         return likes.toNumber();
+    }
+
+    async getUser(id) {
+        let user = await this.contract
+            .getUserById(id)
+            .call()
+        return user;
     }
 }
 
@@ -182,5 +227,12 @@ export class PolygonContract {
     async getLikes(id) {
         let likes = await this.contract.bantLikes(id);
         return likes.toNumber();
+    }
+
+    async getUser(id) {
+        console.log(id);
+        let user = await this.contract.getUserById(id);
+        console.log(user);
+        return user;
     }
 }
