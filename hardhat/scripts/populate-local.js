@@ -5,7 +5,7 @@ const users = [
         username: "alice",
         name: "Alice Cooper",
         bio: "American rock singer whose career spans over 54 years",
-        address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266" 
+        address: "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
     },
     {
         username: "bob",
@@ -26,15 +26,20 @@ async function main() {
     const DbantaFactory = await ethers.getContractFactory("Dbanta");
     const dbanta = await DbantaFactory.attach(process.env.REACT_APP_LOCAL_CONTRACT_ADDRESS);
     await Promise.all(users.map(async (user) => {
-        console.log("Regitering", user.name);
-        await dbanta.registerUser(
-            user.address,
-            user.username,
-            user.name,
-            "IMGHASH fixme",
-            "COVERHASH fixme",
-            user.bio
-        );
+        let available = await dbanta.usernameAvailable(user.username);
+        if (true === available) {
+            console.log("Regitering", user.name);
+            await dbanta.registerUser(
+                user.address,
+                user.username,
+                user.name,
+                "IMGHASH fixme",
+                "COVERHASH fixme",
+                user.bio
+            );
+        } else {
+            console.log(user.name, " already registered");
+        }
     }));
 }
 
