@@ -214,7 +214,7 @@ contract Dbanta {
     event BantLiked(uint256 bantId, address user);
     event BantUnliked(uint256 bantId, address user);
 
-    event NewFollowers(address user, address follower);
+    event NewFollower(address user, address follower);
     event logRebantCreated(uint256 rebantid, uint256 bantid, address user);
 
     event BantMinted(uint256 bantId, address user);
@@ -304,10 +304,10 @@ contract Dbanta {
         _registerUser(_user, _username, _name, _imgHash, _coverHash, _bio);
     }
 
-    function followusers(address _person) public {
+    function followUser(address _person) public {
         User storage _user = users[_person];
         _user.followers.push(msg.sender);
-        emit NewFollowers(_person, msg.sender);
+        emit NewFollower(_person, msg.sender);
     }
 
     function rebantusersbant(uint256 _id)
