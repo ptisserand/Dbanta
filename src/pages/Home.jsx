@@ -13,8 +13,30 @@ import PostList from '../components/Home/PostList';
 import UserCard from '../components/Home/UserCard';
 import SinglePostView from '../components/Posts/SinglePostView';
 import WrapContent from '../layout/WrapContent';
+import { useACtx } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
 
 function Home() {
+  const { isAuth, contract } = useACtx();
+  const [users, setUsers] = useState([]);
+
+
+  // FIXME: should be provided by smart contract
+  const getSuggestedUsers = async (address) => {
+    let ret = []
+    for (let i = 0; i < 4; i++) {
+      let user = await contract.getUser(i);
+      ret.push(user);
+    }
+    setUsers(ret);
+  }
+
+  useEffect(() => {
+    if (isAuth !== false && contract !== undefined) {
+      getSuggestedUsers();
+    }
+  }, [contract, isAuth]);
+
   return (
     <Box>
       <WrapContent>
@@ -70,10 +92,7 @@ function Home() {
                 Find Bantamates
               </Heading>
               <Stack spacing="3">
-                <UserCard name="Dominic Toretto" username="dominic" />
-                <UserCard name="Doctor Strange" username="strange" />
-                <UserCard name="Wanda Twins" username="miss_wangdu" />
-                <UserCard name="Eel on Mosque" username="whaaaat?" />
+                {users && users.map((user, i) => <UserCard name={user.name} username={user.username} id={user.id} key={i} />)}
               </Stack>
               <Footer />
             </Stack>
