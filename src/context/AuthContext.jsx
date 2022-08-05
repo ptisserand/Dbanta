@@ -14,14 +14,25 @@ class EVMProvider {
   constructor(setContract, setAuth, toast) {
     this._PROVIDER = null;
     this._SIGNER = null;
-    this.wanted = { name: "maticmum", label: "Polygon Mumbai" };
+    this.wanted = { name: process.env.REACT_APP_NETWORK_NAME !== undefined ? process.env.REACT_APP_NETWORK_NAME : "maticmum", label: "Polygon Mumbai" };
     this.setContract = setContract;
     this.setAuth = setAuth;
     this.toast = toast;
+    let network = process.env.REACT_APP_NETWORK_NAME !== undefined ? process.env.REACT_APP_NETWORK_NAME : "maticmum";
+    switch (network) {
+      case 'unknown':
+        this.wanted = { name: network, label: "Localhost" };
+        this.address = process.env.REACT_APP_LOCAL_CONTRACT_ADDRESS;
+        break;
+      default:
+        this.wanted = { name: network, label: "Polygon mumbai" }
+        this.address = process.env.REACT_APP_MUMBAI_CONTRACT_ADDRESS
+        break;
+    }
   }
   // const wanted = { name: "unknown", label: "Localhost"};
   updateState(account) {
-    let dbanta = new ethers.Contract(process.env.REACT_APP_MUMBAI_CONTRACT_ADDRESS, dbantaAbi, this._SIGNER);
+    let dbanta = new ethers.Contract(this.address, dbantaAbi, this._SIGNER);
     this.setContract(new PolygonContract(dbanta));
     this.setAuth(account);
   };
@@ -127,7 +138,7 @@ class TronProvider {
               duration: 9000,
               isClosable: true,
             });
-    
+
           }
         } else {
           this.toast({
