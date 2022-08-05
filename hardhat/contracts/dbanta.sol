@@ -408,6 +408,14 @@ contract Dbanta {
         return _getUser(_user);
     }
 
+    function getUserAddressById(uint256 _id)
+        public
+        view
+        returns (address _addr)
+    {
+        return usersById[_id];
+    }
+
     function getUserById(uint256 _id)
         public
         view
