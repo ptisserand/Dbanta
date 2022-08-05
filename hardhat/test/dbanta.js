@@ -173,8 +173,9 @@ describe("Dbanta contract", function () {
             const { Dbanta, alice } = await loadFixture(deployDbantaFixture);
             await registeringAlice(Dbanta, alice);
             expect(await Dbanta.usernameAvailable("alice")).to.equal(false);
-            let user = await Dbanta.getUserById(0);
-            console.log(user);
+            let user = await Dbanta.getUserById(2);
+            expect(user.id).to.be.equal(2);
+            expect(user.username).to.be.equal("alice");
         })
     });
 
