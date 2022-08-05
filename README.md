@@ -1,6 +1,6 @@
 ## Deployed contract
 
-- Mumbai: [0x9df98c59F6256AB1948086Cf927Ff08635f2412a](https://mumbai.polygonscan.com/address/0x9df98c59f6256ab1948086cf927ff08635f2412a)
+- Mumbai: [0x1a29f8AC7CACAABfd60E9aCC628A175fB54AA45E](https://mumbai.polygonscan.com/address/0x1a29f8AC7CACAABfd60E9aCC628A175fB54AA45E)
 - Shasta: [TTfyqcThBeGaTzhAZAcdhYfAeV8e9Mnm63](https://shasta.tronscan.org/#/contract/TTfyqcThBeGaTzhAZAcdhYfAeV8e9Mnm63/code)
   
   
@@ -11,6 +11,8 @@ You need to create file named `.env` with the following contents:
 ##### React configuration
 REACT_APP_PINATA_KEY="Pinata Key"
 REACT_APP_PINATA_SECRET="Pinata secret"
+# REACT_APP_NETWORK_NAME="unknown" # to use local node
+REACT_APP_LOCAL_CONTRACT_ADDRESS="0x local contract address"
 REACT_APP_MUMBAI_CONTRACT_ADDRESS="0x Mumbai contract address"
 REACT_APP_TRON_CONTRACT_ADDRESS="T Tron contract address"
 
